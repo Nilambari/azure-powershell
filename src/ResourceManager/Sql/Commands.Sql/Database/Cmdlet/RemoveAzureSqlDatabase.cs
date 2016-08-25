@@ -12,16 +12,15 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
+using Microsoft.Azure.Commands.Sql.Database.Model;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Management.Automation;
-using Microsoft.Azure.Commands.Sql.Database.Model;
-using Microsoft.Azure.Commands.Sql.Properties;
 
 namespace Microsoft.Azure.Commands.Sql.Database.Cmdlet
 {
-    [Cmdlet(VerbsCommon.Remove, "AzureSqlDatabase",
-        SupportsShouldProcess = true, 
+    [Cmdlet(VerbsCommon.Remove, "AzureRmSqlDatabase",
+        SupportsShouldProcess = true,
         ConfirmImpact = ConfirmImpact.High)]
     public class RemoveAzureSqlDatabase : AzureSqlDatabaseCmdletBase
     {
@@ -47,8 +46,8 @@ namespace Microsoft.Azure.Commands.Sql.Database.Cmdlet
         /// <returns>The list of entities</returns>
         protected override IEnumerable<AzureSqlDatabaseModel> GetEntity()
         {
-            return new List<Model.AzureSqlDatabaseModel>() { 
-                ModelAdapter.GetDatabase(this.ResourceGroupName, this.ServerName, this.DatabaseName) 
+            return new List<Model.AzureSqlDatabaseModel>() {
+                ModelAdapter.GetDatabase(this.ResourceGroupName, this.ServerName, this.DatabaseName)
             };
         }
 
@@ -79,9 +78,9 @@ namespace Microsoft.Azure.Commands.Sql.Database.Cmdlet
         public override void ExecuteCmdlet()
         {
             if (!Force.IsPresent && !ShouldProcess(
-               string.Format(CultureInfo.InvariantCulture, Resources.RemoveAzureSqlDatabaseDescription, this.DatabaseName, this.ServerName),
-               string.Format(CultureInfo.InvariantCulture, Resources.RemoveAzureSqlDatabaseWarning, this.DatabaseName, this.ServerName),
-               Resources.ShouldProcessCaption))
+               string.Format(CultureInfo.InvariantCulture, Microsoft.Azure.Commands.Sql.Properties.Resources.RemoveAzureSqlDatabaseDescription, this.DatabaseName, this.ServerName),
+               string.Format(CultureInfo.InvariantCulture, Microsoft.Azure.Commands.Sql.Properties.Resources.RemoveAzureSqlDatabaseWarning, this.DatabaseName, this.ServerName),
+               Microsoft.Azure.Commands.Sql.Properties.Resources.ShouldProcessCaption))
             {
                 return;
             }

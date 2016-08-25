@@ -14,23 +14,21 @@
 
 using System;
 using System.Collections;
-using Microsoft.Azure.KeyVault.WebKey;
-using Microsoft.Azure.KeyVault;
 using KeyVaultProperties = Microsoft.Azure.Commands.KeyVault.Properties;
 
 namespace Microsoft.Azure.Commands.KeyVault.Models
 {
     public class KeyIdentityItem : ObjectIdentifier
     {
-        internal KeyIdentityItem(Microsoft.Azure.KeyVault.KeyItem keyItem, VaultUriHelper vaultUriHelper)
+        internal KeyIdentityItem(Azure.KeyVault.KeyItem keyItem, VaultUriHelper vaultUriHelper)
         {
             if (keyItem == null)
-                throw new ArgumentNullException("keyItem");           
+                throw new ArgumentNullException("keyItem");
             if (keyItem.Attributes == null)
                 throw new ArgumentException(KeyVaultProperties.Resources.InvalidKeyAttributes);
             if (keyItem.Identifier == null)
                 throw new ArgumentException(KeyVaultProperties.Resources.InvalidKeyIdentifier);
-         
+
             SetObjectIdentifier(vaultUriHelper, keyItem.Identifier);
 
             Enabled = keyItem.Attributes.Enabled;
@@ -49,7 +47,7 @@ namespace Microsoft.Azure.Commands.KeyVault.Models
                 throw new ArgumentException(KeyVaultProperties.Resources.InvalidKeyAttributes);
 
             SetObjectIdentifier(keyBundle);
-                                  
+
             Enabled = keyBundle.Attributes.Enabled;
             Expires = keyBundle.Attributes.Expires;
             NotBefore = keyBundle.Attributes.NotBefore;
@@ -63,16 +61,16 @@ namespace Microsoft.Azure.Commands.KeyVault.Models
         public DateTime? Expires { get; set; }
 
         public DateTime? NotBefore { get; set; }
-               
+
         public DateTime? Created { get; private set; }
 
         public DateTime? Updated { get; private set; }
 
-        public Hashtable Tags { get; set; }      
-       
-        public string TagsTable 
-        { 
-            get { return (Tags == null) ? null : Tags.ConvertToTagsTable(); } 
-        }        
+        public Hashtable Tags { get; set; }
+
+        public string TagsTable
+        {
+            get { return (Tags == null) ? null : Tags.ConvertToTagsTable(); }
+        }
     }
 }

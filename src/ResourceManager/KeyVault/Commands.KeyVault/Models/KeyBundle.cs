@@ -12,9 +12,8 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using System;
 using Microsoft.Azure.KeyVault.WebKey;
-using Microsoft.Azure.KeyVault;
+using System;
 using KeyVaultProperties = Microsoft.Azure.Commands.KeyVault.Properties;
 
 namespace Microsoft.Azure.Commands.KeyVault.Models
@@ -24,30 +23,30 @@ namespace Microsoft.Azure.Commands.KeyVault.Models
         public KeyBundle()
         { }
 
-        internal KeyBundle(Microsoft.Azure.KeyVault.KeyBundle keyBundle, VaultUriHelper vaultUriHelper)
+        internal KeyBundle(Azure.KeyVault.KeyBundle keyBundle, VaultUriHelper vaultUriHelper)
         {
             if (keyBundle == null)
                 throw new ArgumentNullException("keyBundle");
             if (keyBundle.Key == null || keyBundle.Attributes == null)
                 throw new ArgumentException(KeyVaultProperties.Resources.InvalidKeyBundle);
-           
-            SetObjectIdentifier(vaultUriHelper,keyBundle.KeyIdentifier);
+
+            SetObjectIdentifier(vaultUriHelper, keyBundle.KeyIdentifier);
 
             Key = keyBundle.Key;
             Attributes = new KeyAttributes(
                 keyBundle.Attributes.Enabled,
-                keyBundle.Attributes.Expires, 
-                keyBundle.Attributes.NotBefore, 
-                keyBundle.Key.Kty, 
+                keyBundle.Attributes.Expires,
+                keyBundle.Attributes.NotBefore,
+                keyBundle.Key.Kty,
                 keyBundle.Key.KeyOps,
                 keyBundle.Attributes.Created,
                 keyBundle.Attributes.Updated,
-                keyBundle.Tags);            
-        }        
+                keyBundle.Tags);
+        }
 
         public KeyAttributes Attributes { get; set; }
 
-        public JsonWebKey Key { get; set; }        
-        
+        public JsonWebKey Key { get; set; }
+
     }
 }

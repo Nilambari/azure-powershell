@@ -15,7 +15,6 @@
 using Microsoft.Azure.Commands.Compute.Common;
 using Microsoft.Azure.Commands.Compute.Models;
 using Microsoft.Azure.Management.Compute.Models;
-using Microsoft.WindowsAzure.Commands.Utilities.Common;
 using System.Collections.Generic;
 using System.Management.Automation;
 
@@ -26,7 +25,7 @@ namespace Microsoft.Azure.Commands.Compute
         ProfileNouns.DataDisk),
     OutputType(
         typeof(PSVirtualMachine))]
-    public class AddAzureVMDataDiskCommand : AzurePSCmdlet
+    public class AddAzureVMDataDiskCommand : Microsoft.Azure.Commands.ResourceManager.Common.AzureRMCmdlet
     {
         [Alias("VMProfile")]
         [Parameter(
@@ -47,7 +46,7 @@ namespace Microsoft.Azure.Commands.Compute
         public string Name { get; set; }
 
         [Parameter(
-            Mandatory = false,
+            Mandatory = true,
             Position = 2,
             ValueFromPipelineByPropertyName = true,
             HelpMessage = HelpMessages.VMDataDiskVhdUri)]
@@ -59,16 +58,14 @@ namespace Microsoft.Azure.Commands.Compute
             Position = 3,
             ValueFromPipelineByPropertyName = true,
             HelpMessage = HelpMessages.VMDataDiskCaching)]
-        [ValidateNotNullOrEmpty]
-        [ValidateSet(ValidateSetValues.ReadOnly, ValidateSetValues.ReadWrite)]
-        public string Caching { get; set; }
+        public CachingTypes Caching { get; set; }
 
         [Parameter(
             Mandatory = true,
             Position = 4,
             ValueFromPipelineByPropertyName = true,
             HelpMessage = HelpMessages.VMDataDiskSizeInGB)]
-        [ValidateNotNullOrEmpty]
+        [AllowNull]
         public int? DiskSizeInGB { get; set; }
 
         [Parameter(
@@ -84,9 +81,7 @@ namespace Microsoft.Azure.Commands.Compute
             Position = 6,
             ValueFromPipelineByPropertyName = true,
             HelpMessage = HelpMessages.VMDataDiskCreateOption)]
-        [ValidateNotNullOrEmpty]
-        [ValidateSet(DiskCreateOptionTypes.Empty, DiskCreateOptionTypes.Attach, DiskCreateOptionTypes.FromImage)]
-        public string CreateOption { get; set; }
+        public DiskCreateOptionTypes CreateOption { get; set; }
 
         [Alias("SourceImage")]
         [Parameter(
@@ -115,13 +110,13 @@ namespace Microsoft.Azure.Commands.Compute
                 Name = this.Name,
                 Caching = this.Caching,
                 DiskSizeGB = this.DiskSizeInGB,
-                Lun = this.Lun == null ? 0 : this.Lun.Value,
-                VirtualHardDisk = string.IsNullOrEmpty(this.VhdUri) ? null : new VirtualHardDisk
+                Lun = this.Lun.GetValueOrDefault(),
+                Vhd = new VirtualHardDisk
                 {
                     Uri = this.VhdUri
                 },
                 CreateOption = this.CreateOption,
-                SourceImage = string.IsNullOrEmpty(this.SourceImageUri) ? null : new VirtualHardDisk
+                Image = string.IsNullOrEmpty(this.SourceImageUri) ? null : new VirtualHardDisk
                 {
                     Uri = this.SourceImageUri
                 }

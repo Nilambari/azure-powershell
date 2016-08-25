@@ -30,10 +30,10 @@ function Test-CreateServer
 	try
 	{
 		# With all parameters
-		$server1 = New-AzureSqlServer -ResourceGroupName $rg.ResourceGroupName -ServerName $serverName -Location $rg.Location -ServerVersion $version -SqlAdminCredentials $credentials
+		$server1 = New-AzureRmSqlServer -ResourceGroupName $rg.ResourceGroupName -ServerName $serverName -Location $rg.Location -ServerVersion $version -SqlAdministratorCredentials $credentials
 		Assert-AreEqual $server1.ServerName $serverName
 		Assert-AreEqual $server1.ServerVersion $version
-		Assert-AreEqual $server1.SqlAdminUserName $serverLogin
+		Assert-AreEqual $server1.SqlAdministratorLogin $serverLogin
 	}
 	finally
 	{
@@ -57,19 +57,19 @@ function Test-UpdateServer
 		$serverPassword = "n3wc00lP@55w0rd"
 		$secureString = ConvertTo-SecureString $serverPassword -AsPlainText -Force
 
-		$server1 = Set-AzureSqlServer -ResourceGroupName $rg.ResourceGroupName -ServerName $server.ServerName -SqlAdminPassword $secureString
+		$server1 = Set-AzureRmSqlServer -ResourceGroupName $rg.ResourceGroupName -ServerName $server.ServerName -SqlAdministratorPassword $secureString
 		Assert-AreEqual $server1.ServerName $server.ServerName
 		Assert-AreEqual $server1.ServerVersion $server.ServerVersion
-		Assert-AreEqual $server1.SqlAdminUserName $server.SqlAdminUserName
+		Assert-AreEqual $server1.SqlAdministratorLogin $server.SqlAdministratorLogin
 		
 		# Test piping
 		$serverPassword = "n3wc00lP@55w0rd!!!"
 		$secureString = ConvertTo-SecureString $serverPassword -AsPlainText -Force
 
-		$server2 = $server | Set-AzureSqlServer -SqlAdminPassword $secureString
+		$server2 = $server | Set-AzureRmSqlServer -SqlAdministratorPassword $secureString
 		Assert-AreEqual $server2.ServerName $server.ServerName
 		Assert-AreEqual $server2.ServerVersion $server.ServerVersion
-		Assert-AreEqual $server2.SqlAdminUserName $server.SqlAdminUserName
+		Assert-AreEqual $server2.SqlAdministratorLogin $server.SqlAdministratorLogin
 	}
 	finally
 	{
@@ -91,18 +91,18 @@ function Test-GetServer
 	try
 	{
 		# Test using parameters
-		$resp1 = Get-AzureSqlServer -ResourceGroupName $rg.ResourceGroupName -ServerName $server1.ServerName
+		$resp1 = Get-AzureRmSqlServer -ResourceGroupName $rg.ResourceGroupName -ServerName $server1.ServerName
 		Assert-AreEqual $server1.ServerName $resp1.ServerName
 		Assert-AreEqual $server1.ServerVersion $resp1.ServerVersion
-		Assert-AreEqual $server1.SqlAdminUserName $resp1.SqlAdminUserName
+		Assert-AreEqual $server1.SqlAdministratorLogin $resp1.SqlAdministratorLogin
 		
 		# Test piping
-		$resp2 = $server2 | Get-AzureSqlServer
+		$resp2 = $server2 | Get-AzureRmSqlServer
 		Assert-AreEqual $server2.ServerName $resp2.ServerName
 		Assert-AreEqual $server2.ServerVersion $resp2.ServerVersion
-		Assert-AreEqual $server2.SqlAdminUserName $resp2.SqlAdminUserName
+		Assert-AreEqual $server2.SqlAdministratorLogin $resp2.SqlAdministratorLogin
 
-		$all = Get-AzureSqlServer -ResourceGroupName $rg.ResourceGroupName
+		$all = Get-AzureRmSqlServer -ResourceGroupName $rg.ResourceGroupName
 		Assert-AreEqual $all.Count 2
 	}
 	finally
@@ -125,12 +125,12 @@ function Test-RemoveServer
 	try
 	{
 		# Test using parameters
-		Remove-AzureSqlServer -ResourceGroupName $rg.ResourceGroupName -ServerName $server1.ServerName -Force
+		Remove-AzureRmSqlServer -ResourceGroupName $rg.ResourceGroupName -ServerName $server1.ServerName -Force
 		
 		# Test piping
-		$server2 | Remove-AzureSqlServer -Force
+		$server2 | Remove-AzureRmSqlServer -Force
 
-		$all = Get-AzureSqlServer -ResourceGroupName $rg.ResourceGroupName
+		$all = Get-AzureRmSqlServer -ResourceGroupName $rg.ResourceGroupName
 		Assert-AreEqual $all.Count 0
 	}
 	finally

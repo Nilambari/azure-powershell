@@ -12,7 +12,6 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using Microsoft.Azure.Commands.Automation.Cmdlet;
 using Microsoft.Azure.Commands.Automation.Common;
 using Microsoft.Azure.Commands.Automation.Model;
@@ -21,11 +20,11 @@ using Microsoft.WindowsAzure.Commands.Common.Test.Mocks;
 using Microsoft.WindowsAzure.Commands.Test.Utilities.Common;
 using Microsoft.WindowsAzure.Commands.Utilities.Common;
 using Moq;
-
-namespace Microsoft.Azure.Commands.Automation.Test.UnitTests
+using System.Collections.Generic;
+namespace Microsoft.Azure.Commands.ResourceManager.Automation.Test.UnitTests
 {
     [TestClass]
-    public class GetAzureAutomationAccountTest : TestBase
+    public class GetAzureAutomationAccountTest : RMTestBase
     {
         private Mock<IAutomationClient> mockAutomationClient;
 
@@ -39,10 +38,10 @@ namespace Microsoft.Azure.Commands.Automation.Test.UnitTests
             this.mockAutomationClient = new Mock<IAutomationClient>();
             this.mockCommandRuntime = new MockCommandRuntime();
             this.cmdlet = new GetAzureAutomationAccount
-                              {
-                                  AutomationClient = this.mockAutomationClient.Object,
-                                  CommandRuntime = this.mockCommandRuntime
-                              };
+            {
+                AutomationClient = this.mockAutomationClient.Object,
+                CommandRuntime = this.mockCommandRuntime
+            };
         }
 
         [TestMethod]
@@ -50,14 +49,16 @@ namespace Microsoft.Azure.Commands.Automation.Test.UnitTests
         {
             // Setup
             string resourceGroupName = "resourceGroup";
+            string nextLink = string.Empty;
 
-            this.mockAutomationClient.Setup(f => f.ListAutomationAccounts(resourceGroupName)).Returns((string a) => new List<AutomationAccount>());
+            this.mockAutomationClient.Setup(f => f.ListAutomationAccounts(resourceGroupName, ref nextLink)).Returns((string a, string b) => new List<AutomationAccount>());
 
             // Test
+            this.cmdlet.ResourceGroupName = resourceGroupName;
             this.cmdlet.ExecuteCmdlet();
 
             // Assert
-            this.mockAutomationClient.Verify(f => f.ListAutomationAccounts(null), Times.Once());
+            this.mockAutomationClient.Verify(f => f.ListAutomationAccounts(resourceGroupName, ref nextLink), Times.Once());
         }
 
         [TestMethod]
@@ -68,7 +69,7 @@ namespace Microsoft.Azure.Commands.Automation.Test.UnitTests
             string accountName = "account";
             this.cmdlet.SetParameterSet("ByAutomationAccountName");
 
-            this.mockAutomationClient.Setup(f => f.GetAutomationAccount(resourceGroupName,accountName));
+            this.mockAutomationClient.Setup(f => f.GetAutomationAccount(resourceGroupName, accountName));
 
             // Test
             this.cmdlet.ResourceGroupName = resourceGroupName;

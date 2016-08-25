@@ -12,18 +12,25 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using System;
 using Microsoft.Azure.Commands.Sql.FirewallRule.Cmdlet;
 using Microsoft.Azure.Commands.Sql.Test.Utilities;
+using Microsoft.Azure.ServiceManagemenet.Common.Models;
 using Microsoft.WindowsAzure.Commands.ScenarioTest;
+using System;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Azure.Commands.Sql.Test.UnitTests
 {
     public class AzureSqlServerFirewallRuleAttributeTests
     {
+        public AzureSqlServerFirewallRuleAttributeTests(ITestOutputHelper output)
+        {
+            XunitTracingInterceptor.AddToContext(new XunitTracingInterceptor(output));
+        }
+
         [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
+        [Trait(Category.AcceptanceType, Category.CheckIn)]
         public void NewAzureSqlServerFirewallRuleAttributes()
         {
             Type type = typeof(NewAzureSqlServerFirewallRule);
@@ -38,7 +45,7 @@ namespace Microsoft.Azure.Commands.Sql.Test.UnitTests
         }
 
         [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
+        [Trait(Category.AcceptanceType, Category.CheckIn)]
         public void SetAzureSqlServerFirewallRuleAttributes()
         {
             Type type = typeof(SetAzureSqlServerFirewallRule);
@@ -52,7 +59,7 @@ namespace Microsoft.Azure.Commands.Sql.Test.UnitTests
         }
 
         [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
+        [Trait(Category.AcceptanceType, Category.CheckIn)]
         public void RemoveAzureSqlServerFirewallRuleAttributes()
         {
             Type type = typeof(RemoveAzureSqlServerFirewallRule);
@@ -64,7 +71,7 @@ namespace Microsoft.Azure.Commands.Sql.Test.UnitTests
         }
 
         [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
+        [Trait(Category.AcceptanceType, Category.CheckIn)]
         public void GetAzureSqlServerFirewallRuleAttributes()
         {
             Type type = typeof(GetAzureSqlServerFirewallRule);

@@ -15,17 +15,14 @@
 using System;
 using System.Globalization;
 using System.Management.Automation;
-using Microsoft.Azure.Management.KeyVault;
-using PSKeyVaultModels = Microsoft.Azure.Commands.KeyVault.Models;
 using PSKeyVaultProperties = Microsoft.Azure.Commands.KeyVault.Properties;
 
 namespace Microsoft.Azure.Commands.KeyVault
 {
-    [Cmdlet(VerbsCommon.Remove, "AzureKeyVault",
+    [Cmdlet(VerbsCommon.Remove, "AzureRmKeyVault",
         SupportsShouldProcess = true,
-        ConfirmImpact = ConfirmImpact.High, 
+        ConfirmImpact = ConfirmImpact.High,
         HelpUri = Constants.KeyVaultHelpUri)]
-    [OutputType(typeof(PSKeyVaultModels.PSVault))]
     public class RemoveAzureKeyVault : KeyVaultManagementCmdletBase
     {
         #region Input Parameter Definitions
@@ -55,7 +52,7 @@ namespace Microsoft.Azure.Commands.KeyVault
         /// </summary>
         [Parameter(Mandatory = false,
            HelpMessage = "Indicates that the cmdlet does not prompt you for confirmation. By default, this cmdlet prompts you to confirm that you want to delete the key vault.")]
-        public SwitchParameter Force { get; set; }        
+        public SwitchParameter Force { get; set; }
 
         #endregion
 
@@ -76,9 +73,12 @@ namespace Microsoft.Azure.Commands.KeyVault
                     PSKeyVaultProperties.Resources.RemoveVaultWhatIfMessage,
                     VaultName),
                 VaultName,
-                () => { KeyVaultManagementClient.DeletVault(
-                    vaultName: VaultName, 
-                    resourceGroupName: this.ResourceGroupName); });            
+                () =>
+                {
+                    KeyVaultManagementClient.DeletVault(
+                vaultName: VaultName,
+                resourceGroupName: this.ResourceGroupName);
+                });
         }
 
     }

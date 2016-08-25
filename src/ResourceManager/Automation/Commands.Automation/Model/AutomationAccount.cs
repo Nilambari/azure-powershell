@@ -12,9 +12,9 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
+using Microsoft.Azure.Commands.Automation.Common;
 using System;
 using System.Collections;
-using Microsoft.Azure.Commands.Automation.Common;
 
 namespace Microsoft.Azure.Commands.Automation.Model
 {
@@ -36,10 +36,20 @@ namespace Microsoft.Azure.Commands.Automation.Model
         /// </param>
         public AutomationAccount(string resourceGroupName, AutomationManagement.Models.AutomationAccount automationAccount)
         {
-            Requires.Argument("ResourceGroupName", resourceGroupName).NotNull();
             Requires.Argument("AutomationAccount", automationAccount).NotNull();
 
-            this.ResourceGroupName = resourceGroupName;
+
+            if (!string.IsNullOrEmpty(resourceGroupName))
+            {
+                this.ResourceGroupName = resourceGroupName;
+            }
+            else
+            {
+                this.ResourceGroupName = automationAccount.Id.Substring(1).Split(Convert.ToChar("/"))[3];
+            }
+
+            this.SubscriptionId = automationAccount.Id.Substring(1).Split(Convert.ToChar("/"))[1];
+
             this.AutomationAccountName = automationAccount.Name;
             this.Location = automationAccount.Location;
 
@@ -48,7 +58,7 @@ namespace Microsoft.Azure.Commands.Automation.Model
             {
                 this.Tags.Add(kvp.Key, kvp.Value);
             }
-            
+
             if (automationAccount.Properties == null) return;
 
             this.Plan = automationAccount.Properties.Sku != null ? automationAccount.Properties.Sku.Name : null;
@@ -64,6 +74,11 @@ namespace Microsoft.Azure.Commands.Automation.Model
         public AutomationAccount()
         {
         }
+
+        /// <summary>
+        /// Gets or sets the Subscription ID
+        /// </summary>
+        public string SubscriptionId { get; set; }
 
         /// <summary>
         /// Gets or sets the resource group name.

@@ -12,25 +12,22 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-namespace Microsoft.Azure.Management.RemoteApp.Cmdlets
+namespace Microsoft.WindowsAzure.Management.RemoteApp.Cmdlets
 {
-    using Microsoft.Azure.Management.RemoteApp;
-    using Microsoft.Azure.Management.RemoteApp.Models;
+    using Microsoft.WindowsAzure.Commands.RemoteApp;
     using Microsoft.WindowsAzure.Management.Compute;
     using Microsoft.WindowsAzure.Management.Compute.Models;
+    using Microsoft.WindowsAzure.Management.RemoteApp;
+    using Microsoft.WindowsAzure.Management.RemoteApp.Models;
     using Microsoft.WindowsAzure.Management.Storage;
     using Microsoft.WindowsAzure.Management.Storage.Models;
     using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.Blob;
     using System;
     using System.Collections.ObjectModel;
-    using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Management.Automation;
-    using System.Management.Automation.Runspaces;
     using System.Threading;
-    using Microsoft.Azure.Commands.RemoteApp;
 
     [Cmdlet(VerbsCommon.New, "AzureRemoteAppTemplateImage", DefaultParameterSetName = UploadLocalVhd), OutputType(typeof(TemplateImageResult))]
 
@@ -252,8 +249,9 @@ namespace Microsoft.Azure.Management.RemoteApp.Cmdlets
             pageBlob = new CloudPageBlob(uri, credentials);
 
             accessPolicy.Permissions = SharedAccessBlobPermissions.Read;
-            accessPolicy.SharedAccessStartTime = DateTime.Now;
-            accessPolicy.SharedAccessExpiryTime = DateTime.Now.AddHours(12);
+            // Sometimes the clocks are 2-3 seconds fast and the SAS is not yet valid when the service tries to use it.
+            accessPolicy.SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-5);
+            accessPolicy.SharedAccessExpiryTime = DateTime.UtcNow.AddHours(12);
 
             sas = pageBlob.GetSharedAccessSignature(accessPolicy);
 
@@ -466,22 +464,7 @@ namespace Microsoft.Azure.Management.RemoteApp.Cmdlets
                     }
                 case AzureVmUpload:
                     {
-                        if (IsFeatureEnabled(EnabledFeatures.goldImageImport))
-                        {
-                            ImportTemplateImage();
-                        }
-                        else
-                        {
-                            ErrorRecord er = RemoteAppCollectionErrorState.CreateErrorRecordFromString(
-                                     string.Format(Commands_RemoteApp.ImportImageFeatureNotEnabledError),
-                                     String.Empty,
-                                     Client.Account,
-                                     ErrorCategory.InvalidOperation
-                                     );
-
-                            ThrowTerminatingError(er);
-                        }
-                        
+                        ImportTemplateImage();
                         break;
                     }
             }

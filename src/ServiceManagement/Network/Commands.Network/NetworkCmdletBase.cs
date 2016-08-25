@@ -14,8 +14,8 @@
 
 namespace Microsoft.WindowsAzure.Commands.ServiceManagement.Network
 {
-    using Microsoft.Azure.Common.Authentication;
-    using Microsoft.Azure.Common.Authentication.Models;
+    using Microsoft.Azure.Commands.Common.Authentication;
+    using Microsoft.Azure.Commands.Common.Authentication.Models;
     using WindowsAzure.Commands.Common;
     using WindowsAzure.Commands.Utilities.Common;
     using WindowsAzure.Commands.Utilities.Profile;
@@ -23,7 +23,7 @@ namespace Microsoft.WindowsAzure.Commands.ServiceManagement.Network
     /// <summary>
     /// The base class for all Microsoft Azure Network Gateway Management Cmdlets
     /// </summary>
-    public abstract class NetworkCmdletBase : AzurePSCmdlet
+    public abstract class NetworkCmdletBase : AzureSMCmdlet
     {
         private NetworkClient client;
 

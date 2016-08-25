@@ -12,20 +12,14 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using Microsoft.Azure.Common.Authentication;
-using Microsoft.WindowsAzure.Commands.Utilities.Common;
-using System;
-using System.IO;
+using Microsoft.Azure.Commands.Common.Authentication;
+using Microsoft.Azure.Commands.ResourceManager.Common;
 using System.Net.Http;
 
 namespace Microsoft.Azure.Commands.KeyVault.Models
 {
-    public class KeyVaultCmdletBase : AzurePSCmdlet
-    {        
-        public KeyVaultCmdletBase()
-        {        
-        }
-
+    public class KeyVaultCmdletBase : AzureRMCmdlet
+    {
         internal IKeyVaultDataServiceClient DataServiceClient
         {
             get
@@ -34,7 +28,7 @@ namespace Microsoft.Azure.Commands.KeyVault.Models
                 {
                     this.dataServiceClient = new KeyVaultDataServiceClient(
                         AzureSession.AuthenticationFactory,
-                        Profile.Context,
+                        DefaultContext,
                         new HttpClient());
                 }
 
@@ -44,8 +38,8 @@ namespace Microsoft.Azure.Commands.KeyVault.Models
             {
                 this.dataServiceClient = value;
             }
-        }       
-        
+        }
+
 
         private IKeyVaultDataServiceClient dataServiceClient;
     }

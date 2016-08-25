@@ -13,9 +13,7 @@
 // ----------------------------------------------------------------------------------
 
 using Microsoft.Azure.Management.Compute.Models;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.Azure.Commands.Compute.Models
 {
@@ -24,6 +22,8 @@ namespace Microsoft.Azure.Commands.Compute.Models
         public string ResourceGroupName { get; set; }
 
         public string Name { get; set; }
+
+        public BootDiagnosticsInstanceView BootDiagnostics { get; set; }
 
         public IList<DiskInstanceView> Disks { get; set; }
 
@@ -51,20 +51,21 @@ namespace Microsoft.Azure.Commands.Compute.Models
             {
                 ResourceGroupName = resourceGroupName,
                 Name = vmName,
+                BootDiagnostics = virtualMachineInstanceView.BootDiagnostics,
                 Disks = virtualMachineInstanceView.Disks,
                 Extensions = virtualMachineInstanceView.Extensions,
                 Statuses = virtualMachineInstanceView.Statuses,
                 PlatformFaultDomain = virtualMachineInstanceView.PlatformFaultDomain,
                 PlatformUpdateDomain = virtualMachineInstanceView.PlatformUpdateDomain,
-                RemoteDesktopThumbprint = virtualMachineInstanceView.RemoteDesktopThumbprint,
-                VMAgent = virtualMachineInstanceView.VMAgent
+                RemoteDesktopThumbprint = virtualMachineInstanceView.RdpThumbPrint,
+                VMAgent = virtualMachineInstanceView.VmAgent
             };
 
             return result;
         }
 
         public static PSVirtualMachineInstanceView ToPSVirtualMachineInstanceView(
-            this VirtualMachineGetResponse response,
+            this VirtualMachine response,
             string resourceGroupName = null,
             string vmName = null)
         {
@@ -73,7 +74,7 @@ namespace Microsoft.Azure.Commands.Compute.Models
                 return null;
             }
 
-            return response.VirtualMachine.InstanceView.ToPSVirtualMachineInstanceView(resourceGroupName, vmName);
+            return response.InstanceView.ToPSVirtualMachineInstanceView(resourceGroupName, vmName);
         }
     }
 }

@@ -12,13 +12,16 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
+using AutoMapper;
 using Microsoft.Azure.Commands.Compute.Common;
-using Microsoft.Azure.Management.Compute;
+using Microsoft.Azure.Commands.Compute.Models;
 using System.Management.Automation;
+
 
 namespace Microsoft.Azure.Commands.Compute
 {
-    [Cmdlet(VerbsCommon.Remove, ProfileNouns.AvailabilitySet)]
+    [Cmdlet(VerbsCommon.Remove, ProfileNouns.AvailabilitySet, SupportsShouldProcess = true)]
+    [OutputType(typeof(PSAzureOperationResponse))]
     public class RemoveAzureAvailabilitySetCommand : AvailabilitySetBaseCmdlet
     {
         [Parameter(
@@ -37,13 +40,29 @@ namespace Microsoft.Azure.Commands.Compute
         [ValidateNotNullOrEmpty]
         public string Name { get; set; }
 
+        [Parameter(
+           Position = 2,
+           HelpMessage = "To force the removal.")]
+        [ValidateNotNullOrEmpty]
+        public SwitchParameter Force { get; set; }
+
         public override void ExecuteCmdlet()
         {
             base.ExecuteCmdlet();
 
-            var op = this.AvailabilitySetClient.Delete(this.ResourceGroupName, this.Name);
-
-            WriteObject(op);
+            ExecuteClientAction(() =>
+            {
+                if (this.ShouldProcess(Name, VerbsCommon.Remove) 
+                    && (this.Force.IsPresent
+                    || this.ShouldContinue(Properties.Resources.AvailabilitySetRemovalConfirmation, Properties.Resources.AvailabilitySetRemovalCaption)))
+                {
+                    var op = this.AvailabilitySetClient.DeleteWithHttpMessagesAsync(
+                        this.ResourceGroupName,
+                        this.Name).GetAwaiter().GetResult();
+                    var result = Mapper.Map<PSAzureOperationResponse>(op);
+                    WriteObject(result);
+                }
+            });
         }
     }
 }

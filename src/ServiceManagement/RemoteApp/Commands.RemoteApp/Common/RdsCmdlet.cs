@@ -13,18 +13,21 @@
 // ----------------------------------------------------------------------------------
 
 using Hyak.Common;
-using Microsoft.Azure.Commands.RemoteApp;
-using Microsoft.Azure.Common.Authentication;
-using Microsoft.Azure.Common.Authentication.Models;
-using Microsoft.Azure.Management.RemoteApp.Models;
+using Microsoft.WindowsAzure.Commands.RemoteApp;
+using Microsoft.Azure.Commands.Common.Authentication;
+using Microsoft.Azure.Commands.Common.Authentication.Models;
 using Microsoft.WindowsAzure.Commands.Utilities.Common;
+using Microsoft.WindowsAzure.Management.RemoteApp;
+using Microsoft.WindowsAzure.Management.RemoteApp.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Security.Principal;
+using Microsoft.Azure;
+using Microsoft.WindowsAzure.Commands.Common;
 
 
-namespace Microsoft.Azure.Management.RemoteApp.Models
+namespace Microsoft.WindowsAzure.Management.RemoteApp.Models
 {
 
     public class TrackingResult
@@ -38,7 +41,7 @@ namespace Microsoft.Azure.Management.RemoteApp.Models
     }
 }
 
-namespace Microsoft.Azure.Management.RemoteApp.Cmdlets
+namespace Microsoft.WindowsAzure.Management.RemoteApp.Cmdlets
 {
     public class EnabledFeatures
     {
@@ -46,7 +49,7 @@ namespace Microsoft.Azure.Management.RemoteApp.Cmdlets
         public const string goldImageImport = "GoldImageImport";
     }
 
-    public abstract partial class RdsCmdlet : AzurePSCmdlet
+    public abstract partial class RdsCmdlet : AzureSMCmdlet
     {
         [ThreadStatic]
         internal static Job theJob;
@@ -54,6 +57,7 @@ namespace Microsoft.Azure.Management.RemoteApp.Cmdlets
         private IRemoteAppManagementClient client = null;
 
         private Microsoft.WindowsAzure.Management.ManagementClient mgmtClient = null;
+        private IAdHelper cachedAdHelper = null;
 
         public IRemoteAppManagementClient Client
         {
@@ -79,8 +83,7 @@ namespace Microsoft.Azure.Management.RemoteApp.Cmdlets
             set
             {
                 client = value;  // Test Hook
-                Profile = InitializeDefaultProfile();
-                SetTokenCacheForProfile(Profile);
+                AzureSMProfileProvider.Instance.ResetDefaultProfile();
             }
         }
 
@@ -100,6 +103,23 @@ namespace Microsoft.Azure.Management.RemoteApp.Cmdlets
             set
             {
                 mgmtClient = value;
+            }
+        }
+
+        public IAdHelper ActiveDirectoryHelper
+        {
+            get
+            {
+                if (cachedAdHelper == null)
+                {
+                    cachedAdHelper = new AdHelper();
+                }
+
+                return cachedAdHelper;
+            }
+            set
+            {
+                cachedAdHelper = value;
             }
         }
 

@@ -12,17 +12,17 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Management.Automation;
 using Microsoft.Azure.Commands.KeyVault.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Management.Automation;
 using KeyVaultProperties = Microsoft.Azure.Commands.KeyVault.Properties;
 
 namespace Microsoft.Azure.Commands.KeyVault
 {
     [Cmdlet(VerbsCommon.Get, "AzureKeyVaultKey",
-        DefaultParameterSetName = ByVaultNameParameterSet, 
+        DefaultParameterSetName = ByVaultNameParameterSet,
         HelpUri = Constants.KeyVaultHelpUri)]
     [OutputType(typeof(List<KeyIdentityItem>), typeof(KeyBundle))]
     public class GetAzureKeyVaultKey : KeyVaultCmdletBase
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Commands.KeyVault
         private const string ByKeyNameParameterSet = "ByKeyName";
         private const string ByVaultNameParameterSet = "ByVaultName";
         private const string ByKeyVersionsParameterSet = "ByKeyVersions";
-       
+
         #endregion
 
         #region Input Parameter Definitions
@@ -105,10 +105,12 @@ namespace Microsoft.Azure.Commands.KeyVault
                     WriteObject(keyBundle);
                     break;
                 case ByKeyVersionsParameterSet:
-                     keyBundle = DataServiceClient.GetKey(VaultName, Name, null);
+                    keyBundle = DataServiceClient.GetKey(VaultName, Name, null);
                     if (keyBundle != null)
+                    {
                         WriteObject(new KeyIdentityItem(keyBundle));
-                    GetAndWriteKeyVersions(VaultName, Name, keyBundle.Version);
+                        GetAndWriteKeyVersions(VaultName, Name, keyBundle.Version);
+                    }
                     break;
                 case ByVaultNameParameterSet:
                     GetAndWriteKeys(VaultName);
@@ -123,10 +125,10 @@ namespace Microsoft.Azure.Commands.KeyVault
         {
             KeyVaultObjectFilterOptions options = new KeyVaultObjectFilterOptions
             {
-                VaultName = VaultName,
+                VaultName = vaultName,
                 NextLink = null
             };
-          
+
             do
             {
                 var pageResults = DataServiceClient.GetKeys(options);
@@ -138,11 +140,11 @@ namespace Microsoft.Azure.Commands.KeyVault
         {
             KeyVaultObjectFilterOptions options = new KeyVaultObjectFilterOptions
             {
-                VaultName = VaultName,
+                VaultName = vaultName,
                 NextLink = null,
                 Name = name
             };
-            
+
             do
             {
                 var pageResults = DataServiceClient.GetKeyVersions(options).Where(k => k.Version != currentKeyVersion);

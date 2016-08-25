@@ -10,6 +10,7 @@ $delta=[TimeSpan]::FromMinutes(2)
 $tags=@{"tag1"="value1"; "tag2"=""; "tag3"=$null}
 $newtags= @{"tag1"="value1"; "tag2"="value2"; "tag3"="value3"; "tag4"="value4"}
 $emptytags=@{}
+$defaultKeySizeInBytes = 256
 
 
 
@@ -67,6 +68,7 @@ function Test_CreateSoftwareKeyWithDefaultAttributes
     Assert-NotNull $key
     $global:createdKeys += $keyname
     Assert-KeyAttributes $key.Attributes 'RSA' $true $null $null $null $null
+	Assert-AreEqual $key.Key.N.Length $defaultKeySizeInBytes
 }
 
 <#
@@ -95,6 +97,7 @@ function Test_CreateHsmKeyWithDefaultAttributes
     Assert-NotNull $key
     $global:createdKeys += $keyname
     Assert-KeyAttributes $key.Attributes 'RSA-HSM' $true $null $null $null $null
+	Assert-AreEqual $key.Key.N.Length $defaultKeySizeInBytes
 }
 
 <#
@@ -124,6 +127,23 @@ function Test_ImportPfxWithDefaultAttributes
     Assert-NotNull $key
     $global:createdKeys += $keyname
     Assert-KeyAttributes $key.Attributes 'RSA' $true $null $null $null $null
+	Assert-AreEqual $key.Key.N.Length $defaultKeySizeInBytes
+ }
+
+ <#
+.SYNOPSIS
+Tests import pfx with default attributes
+#>
+function Test_ImportPfxWith1024BitKey
+{
+    $keyVault = Get-KeyVault
+    $keyname=Get-KeyName 'pfx1024'
+    $pfxpath = Get-ImportKeyFile1024 'pfx'
+    $key=Add-AzureKeyVaultKey -VaultName $keyVault -Name $keyname -KeyFilePath $pfxpath -KeyFilePassword $securepfxpwd
+    Assert-NotNull $key
+    $global:createdKeys += $keyname
+    Assert-KeyAttributes $key.Attributes 'RSA' $true $null $null $null $null
+	Assert-AreEqual $key.Key.N.Length 128
  }
 
 <#
@@ -184,6 +204,23 @@ function Test_ImportByokWithDefaultAttributes
     Assert-NotNull $key
     $global:createdKeys += $keyname
     Assert-KeyAttributes $key.Attributes 'RSA-HSM' $true $null $null $null $null
+	Assert-AreEqual $key.Key.N.Length $defaultKeySizeInBytes
+}
+
+<#
+.SYNOPSIS
+Tests import byok with default attributes
+#>
+function Test_ImportByokWith1024BitKey
+{
+    $keyVault = Get-KeyVault
+    $keyname=Get-KeyName 'byok1024'   
+    $byokpath = Get-ImportKeyFile1024 'byok'
+    $key=Add-AzureKeyVaultKey -VaultName $keyVault -Name $keyname -KeyFilePath $byokpath
+    Assert-NotNull $key
+    $global:createdKeys += $keyname
+    Assert-KeyAttributes $key.Attributes 'RSA-HSM' $true $null $null $null $null
+	Assert-AreEqual $key.Key.N.Length 128
 }
 
 <#
@@ -381,17 +418,19 @@ function Test_UpdateAllEditableKeyAttributes
     # Update all attributes
     $key=Set-AzureKeyVaultKeyAttribute -VaultName $keyVault -Name $keyname -Expires $newexpires  -NotBefore $newnbf -KeyOps $newops -Enable $true -Tags $newtags -PassThru   
     Assert-KeyAttributes $key.Attributes 'RSA' $true $newexpires $newnbf $newops $newtags
+    if($global:standardVaultOnly -eq $false)
+    {
+       # Create a hsm key for updating
+      $keyname=Get-KeyName 'uhsm'
+      $key=Add-AzureKeyVaultKey -VaultName $keyVault -Name $keyname -Destination 'HSM' -Expires $expires -NotBefore $nbf -KeyOps $ops -Disable -Tags $tags
+      Assert-NotNull $key
+      $global:createdKeys += $keyname
+      Assert-KeyAttributes $key.Attributes 'RSA-HSM' $false $expires $nbf $ops $tags
 
-     # Create a hsm key for updating
-    $keyname=Get-KeyName 'uhsm'
-    $key=Add-AzureKeyVaultKey -VaultName $keyVault -Name $keyname -Destination 'HSM' -Expires $expires -NotBefore $nbf -KeyOps $ops -Disable -Tags $tags
-    Assert-NotNull $key
-    $global:createdKeys += $keyname
-    Assert-KeyAttributes $key.Attributes 'RSA-HSM' $false $expires $nbf $ops $tags
-
-    # Update all attributes
-    $key=Set-AzureKeyVaultKeyAttribute -VaultName $keyVault -Name $keyname -Expires $newexpires  -NotBefore $newnbf -KeyOps $newops -Enable $true -Tags $newtags -PassThru   
-    Assert-KeyAttributes $key.Attributes 'RSA-HSM' $true $newexpires $newnbf $newops $newtags
+      # Update all attributes
+      $key=Set-AzureKeyVaultKeyAttribute -VaultName $keyVault -Name $keyname -Expires $newexpires  -NotBefore $newnbf -KeyOps $newops -Enable $true -Tags $newtags -PassThru
+      Assert-KeyAttributes $key.Attributes 'RSA-HSM' $true $newexpires $newnbf $newops $newtags
+    }
 }
 
 
@@ -555,8 +594,8 @@ function Test_GetAllKeys
     $run = 5
     $i = 1
     do {
-      Write-Host "Sleep 5 seconds before creating another $total keys"      
-      Start-Sleep -s 5
+      Write-Host "Sleep 5 seconds before creating another $total keys"
+      Wait-Seconds 5
       BulkCreateSoftKeys $keyVault $keypartialname $total
       $i++
     } while ($i -le $run)
@@ -605,8 +644,8 @@ function Test_GetKeyVersions
     $run = 5
     $i = 1
     do {
-      Write-Host "Sleep 5 seconds before creating another $total keys"      
-      Start-Sleep -s 5
+      Write-Host "Sleep 5 seconds before creating another $total keys"
+      Wait-Seconds 5
       BulkCreateSoftKeyVersions $keyVault $keyname $total          
       $i++
     } while ($i -le $run)

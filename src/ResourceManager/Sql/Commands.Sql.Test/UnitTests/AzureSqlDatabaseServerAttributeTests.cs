@@ -12,18 +12,25 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using System;
 using Microsoft.Azure.Commands.Sql.Server.Cmdlet;
 using Microsoft.Azure.Commands.Sql.Test.Utilities;
+using Microsoft.Azure.ServiceManagemenet.Common.Models;
 using Microsoft.WindowsAzure.Commands.ScenarioTest;
+using System;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Azure.Commands.Sql.Test.UnitTests
 {
     public class AzureSqlServerAttributeTests
     {
+        public AzureSqlServerAttributeTests(ITestOutputHelper output)
+        {
+            XunitTracingInterceptor.AddToContext(new XunitTracingInterceptor(output));
+        }
+
         [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
+        [Trait(Category.AcceptanceType, Category.CheckIn)]
         public void NewAzureSqlServerAttributes()
         {
             Type type = typeof(NewAzureSqlServer);
@@ -31,13 +38,13 @@ namespace Microsoft.Azure.Commands.Sql.Test.UnitTests
             UnitTestHelper.CheckConfirmImpact(type, System.Management.Automation.ConfirmImpact.Low);
 
             UnitTestHelper.CheckCmdletParameterAttributes(type, "ServerName", isMandatory: true, valueFromPipelineByName: false);
-            UnitTestHelper.CheckCmdletParameterAttributes(type, "SqlAdminCredentials", isMandatory: true, valueFromPipelineByName: false);
+            UnitTestHelper.CheckCmdletParameterAttributes(type, "SqlAdministratorCredentials", isMandatory: true, valueFromPipelineByName: false);
             UnitTestHelper.CheckCmdletParameterAttributes(type, "Tags", isMandatory: false, valueFromPipelineByName: false);
             UnitTestHelper.CheckCmdletParameterAttributes(type, "ServerVersion", isMandatory: false, valueFromPipelineByName: false);
         }
 
         [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
+        [Trait(Category.AcceptanceType, Category.CheckIn)]
         public void SetAzureSqlServerAttributes()
         {
             Type type = typeof(SetAzureSqlServer);
@@ -45,13 +52,13 @@ namespace Microsoft.Azure.Commands.Sql.Test.UnitTests
             UnitTestHelper.CheckConfirmImpact(type, System.Management.Automation.ConfirmImpact.Medium);
 
             UnitTestHelper.CheckCmdletParameterAttributes(type, "ServerName", isMandatory: true, valueFromPipelineByName: true);
-            UnitTestHelper.CheckCmdletParameterAttributes(type, "SqlAdminPassword", isMandatory: false, valueFromPipelineByName: false);
+            UnitTestHelper.CheckCmdletParameterAttributes(type, "SqlAdministratorPassword", isMandatory: false, valueFromPipelineByName: false);
             UnitTestHelper.CheckCmdletParameterAttributes(type, "Tags", isMandatory: false, valueFromPipelineByName: false);
             UnitTestHelper.CheckCmdletParameterAttributes(type, "ServerVersion", isMandatory: false, valueFromPipelineByName: false);
         }
 
         [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
+        [Trait(Category.AcceptanceType, Category.CheckIn)]
         public void RemoveAzureSqlServerAttributes()
         {
             Type type = typeof(RemoveAzureSqlServer);
@@ -62,7 +69,7 @@ namespace Microsoft.Azure.Commands.Sql.Test.UnitTests
         }
 
         [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
+        [Trait(Category.AcceptanceType, Category.CheckIn)]
         public void GetAzureSqlServerAttributes()
         {
             Type type = typeof(GetAzureSqlServer);

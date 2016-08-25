@@ -12,11 +12,12 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using Microsoft.Azure.Commands.RemoteApp;
-using Microsoft.Azure.Management.RemoteApp.Models;
+using Microsoft.WindowsAzure.Commands.RemoteApp;
+using Microsoft.WindowsAzure.Management.RemoteApp;
+using Microsoft.WindowsAzure.Management.RemoteApp.Models;
 using System.Management.Automation;
 
-namespace Microsoft.Azure.Management.RemoteApp.Cmdlets
+namespace Microsoft.WindowsAzure.Management.RemoteApp.Cmdlets
 {
     [Cmdlet(VerbsData.Update, "AzureRemoteAppCollection", SupportsShouldProcess = true), OutputType(typeof(TrackingResult))]
 
@@ -38,6 +39,12 @@ namespace Microsoft.Azure.Management.RemoteApp.Cmdlets
         public string ImageName { get; set; }
 
         [Parameter(Mandatory = false,
+            ValueFromPipelineByPropertyName = true,
+            HelpMessage = "Name of the subnet to move the collection into."
+        )]
+        public string SubnetName { get; set; }
+
+        [Parameter(Mandatory = false,
             HelpMessage = "Log off users immediately after the update has successfully completed")]
         public SwitchParameter ForceLogoffWhenUpdateComplete { get; set; }
 
@@ -56,7 +63,8 @@ namespace Microsoft.Azure.Management.RemoteApp.Cmdlets
             details = new CollectionUpdateDetails()
             {
                 TemplateImageName = ImageName,
-                WaitBeforeShutdownInMinutes = ForceLogoffWhenUpdateComplete ? -1 : 0
+                WaitBeforeShutdownInMinutes = ForceLogoffWhenUpdateComplete ? -1 : 0,
+                SubnetName = string.IsNullOrEmpty(SubnetName) ? null : SubnetName
             };
 
             if (ShouldProcess(CollectionName, Commands_RemoteApp.UpdateCollection))

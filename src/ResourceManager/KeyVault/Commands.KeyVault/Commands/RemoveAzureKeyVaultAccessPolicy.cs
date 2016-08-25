@@ -15,13 +15,13 @@
 using System;
 using System.Linq;
 using System.Management.Automation;
-using Microsoft.Azure.Management.KeyVault;
 using PSKeyVaultModels = Microsoft.Azure.Commands.KeyVault.Models;
 using PSKeyVaultProperties = Microsoft.Azure.Commands.KeyVault.Properties;
 
 namespace Microsoft.Azure.Commands.KeyVault
 {
-    [Cmdlet(VerbsCommon.Remove, "AzureKeyVaultAccessPolicy", DefaultParameterSetName = "None", HelpUri = Constants.KeyVaultHelpUri)]
+    [Cmdlet(VerbsCommon.Remove, "AzureRmKeyVaultAccessPolicy", HelpUri = Constants.KeyVaultHelpUri)]
+    [OutputType(typeof(PSKeyVaultModels.PSVault))]
     public class RemoveAzureKeyVaultAccessPolicy : KeyVaultManagementCmdletBase
     {
         #region Parameter Set Names
@@ -29,6 +29,7 @@ namespace Microsoft.Azure.Commands.KeyVault
         private const string ByObjectId = "ByObjectId";
         private const string ByServicePrincipalName = "ByServicePrincipalName";
         private const string ByUserPrincipalName = "ByUserPrincipalName";
+        private const string ForVault = "ForVault";
 
         #endregion
 
@@ -87,12 +88,31 @@ namespace Microsoft.Azure.Commands.KeyVault
         public Guid ObjectId { get; set; }
 
         /// <summary>
-        /// 
+        /// Id of the application to which a user delegate to
         /// </summary>
         [Parameter(Mandatory = false,
+            ParameterSetName = ByObjectId,
+            ValueFromPipelineByPropertyName = true,
+            HelpMessage = "Specifies the ID of application that a user must.")]
+        public Guid? ApplicationId { get; set; }
+
+        [Parameter(Mandatory = false,
+            ParameterSetName = ForVault,
             ValueFromPipelineByPropertyName = true,
             HelpMessage = "If specified, disables the retrieval of secrets from this key vault by the Microsoft.Compute resource provider when referenced in resource creation.")]
         public SwitchParameter EnabledForDeployment { get; set; }
+
+        [Parameter(Mandatory = false,
+            ParameterSetName = ForVault,
+            ValueFromPipelineByPropertyName = true,
+            HelpMessage = "If specified, disables the retrieval of secrets from this key vault by Azure Resource Manager when referenced in templates.")]
+        public SwitchParameter EnabledForTemplateDeployment { get; set; }
+
+        [Parameter(Mandatory = false,
+            ParameterSetName = ForVault,
+            ValueFromPipelineByPropertyName = true,
+            HelpMessage = "If specified, edisables the retrieval of secrets from this key vault by Azure Disk Encryption.")]
+        public SwitchParameter EnabledForDiskEncryption { get; set; }
 
         /// <summary>
         /// 
@@ -103,9 +123,15 @@ namespace Microsoft.Azure.Commands.KeyVault
 
 
         #endregion
-        
+
         public override void ExecuteCmdlet()
         {
+            if (ParameterSetName == ForVault && !EnabledForDeployment.IsPresent &&
+                !EnabledForTemplateDeployment.IsPresent && !EnabledForDiskEncryption.IsPresent)
+            {
+                throw new ArgumentException(PSKeyVaultProperties.Resources.VaultPermissionFlagMissing);
+            }
+
             ResourceGroupName = string.IsNullOrWhiteSpace(ResourceGroupName) ? GetResourceGroupName(VaultName) : ResourceGroupName;
 
             // Get the vault to be updated
@@ -120,20 +146,36 @@ namespace Microsoft.Azure.Commands.KeyVault
                 throw new ArgumentException(string.Format(PSKeyVaultProperties.Resources.VaultNotFound, VaultName, ResourceGroupName));
             }
 
+            if (ApplicationId.HasValue && ApplicationId.Value == Guid.Empty)
+                throw new ArgumentException(PSKeyVaultProperties.Resources.InvalidApplicationId);
+
             // Update vault policies
             var updatedPolicies = existingVault.AccessPolicies;
-            if (!string.IsNullOrEmpty(UserPrincipalName) || !string.IsNullOrEmpty(ServicePrincipalName) || (ObjectId != null && ObjectId != Guid.Empty))
+            if (!string.IsNullOrEmpty(UserPrincipalName) || !string.IsNullOrEmpty(ServicePrincipalName) || (ObjectId != Guid.Empty))
             {
-                Guid objId = GetObjectId(this.ObjectId, this.UserPrincipalName, this.ServicePrincipalName);
-
-                updatedPolicies = existingVault.AccessPolicies.Where(ap => ap.ObjectId != objId).ToArray();
+                if (ObjectId == Guid.Empty)
+                {
+                    ObjectId = GetObjectId(this.ObjectId, this.UserPrincipalName, this.ServicePrincipalName);
+                }
+                updatedPolicies = existingVault.AccessPolicies.Where(ap => !ShallBeRemoved(ap, ObjectId, this.ApplicationId)).ToArray();
             }
 
             // Update the vault
-            var updatedVault = KeyVaultManagementClient.UpdateVault(existingVault, updatedPolicies, !this.EnabledForDeployment.IsPresent, ActiveDirectoryClient);
+            var updatedVault = KeyVaultManagementClient.UpdateVault(existingVault, updatedPolicies,
+                EnabledForDeployment.IsPresent ? false : existingVault.EnabledForDeployment,
+                EnabledForTemplateDeployment.IsPresent ? false : existingVault.EnabledForTemplateDeployment,
+                EnabledForDiskEncryption.IsPresent ? false : existingVault.EnabledForDiskEncryption,
+                ActiveDirectoryClient);
 
             if (PassThru.IsPresent)
                 WriteObject(updatedVault);
+        }
+        private bool ShallBeRemoved(PSKeyVaultModels.PSVaultAccessPolicy ap, Guid objectId, Guid? applicationId)
+        {
+            // If both object id and application id are specified, remove the compound identity policy only.                    
+            // If only object id is specified, remove all policies refer to the object id including the compound identity policies.                                
+            return applicationId.HasValue ? (ap.ApplicationId == applicationId && ap.ObjectId == objectId) :
+                (ap.ObjectId == objectId);
         }
     }
 }

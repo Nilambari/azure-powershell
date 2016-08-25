@@ -12,14 +12,16 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
+using AutoMapper;
 using Microsoft.Azure.Commands.Compute.Common;
-using Microsoft.Azure.Management.Compute;
+using Microsoft.Azure.Commands.Compute.Models;
 using Microsoft.Azure.Management.Compute.Models;
 using System.Management.Automation;
 
 namespace Microsoft.Azure.Commands.Compute
 {
     [Cmdlet(VerbsCommon.New, ProfileNouns.AvailabilitySet)]
+    [OutputType(typeof(PSAvailabilitySet))]
     public class NewAzureAvailabilitySetCommand : AvailabilitySetBaseCmdlet
     {
         [Parameter(
@@ -65,19 +67,27 @@ namespace Microsoft.Azure.Commands.Compute
         {
             base.ExecuteCmdlet();
 
-            var avSetParams = new AvailabilitySet
+            ExecuteClientAction(() =>
             {
-                Name = this.Name,
-                Location = this.Location,
-                PlatformUpdateDomainCount = this.PlatformUpdateDomainCount,
-                PlatformFaultDomainCount = this.PlatformFaultDomainCount
-            };
+                var avSetParams = new AvailabilitySet
+                {
+                    Location = this.Location,
+                    PlatformUpdateDomainCount = this.PlatformUpdateDomainCount,
+                    PlatformFaultDomainCount = this.PlatformFaultDomainCount
+                };
 
-            var op = this.AvailabilitySetClient.CreateOrUpdate(
-                this.ResourceGroupName,
-                avSetParams);
+                var result = this.AvailabilitySetClient.CreateOrUpdateWithHttpMessagesAsync(
+                    this.ResourceGroupName,
+                    this.Name,
+                    avSetParams).GetAwaiter().GetResult();
 
-            WriteObject(op);
+                var psResult = Mapper.Map<PSAvailabilitySet>(result);
+                if (result.Body != null)
+                {
+                    psResult = Mapper.Map(result.Body, psResult);
+                }
+                WriteObject(psResult);
+            });
         }
     }
 }

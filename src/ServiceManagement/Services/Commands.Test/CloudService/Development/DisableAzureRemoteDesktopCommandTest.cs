@@ -24,14 +24,14 @@ using Microsoft.WindowsAzure.Commands.Utilities.Common.XmlSchema.ServiceConfigur
 using Microsoft.WindowsAzure.Commands.Common;
 using Microsoft.WindowsAzure.Commands.ScenarioTest;
 using Xunit;
-using Microsoft.Azure.Common.Authentication;
+using Microsoft.Azure.Commands.Common.Authentication;
 
 namespace Microsoft.WindowsAzure.Commands.Test.CloudService.Development
 {
     /// <summary>
     /// Basic unit tests for the Enable-Enable-AzureServiceProjectRemoteDesktop command.
     /// </summary>
-    public class DisableAzureRemoteDesktopCommandTest : TestBase
+    public class DisableAzureRemoteDesktopCommandTest : SMTestBase
     {
         private MockCommandRuntime mockCommandRuntime;
 

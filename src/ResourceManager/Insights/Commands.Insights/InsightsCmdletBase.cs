@@ -12,20 +12,20 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
+using Microsoft.Azure.Commands.ResourceManager.Common;
 using System;
-using Microsoft.WindowsAzure.Commands.Utilities.Common;
 
 namespace Microsoft.Azure.Commands.Insights
 {
     /// <summary>
     /// Base class for the Azure Insights SDK Cmdlets
     /// </summary>
-    public abstract class InsightsCmdletBase : AzurePSCmdlet
+    public abstract class InsightsCmdletBase : AzureRMCmdlet
     {
         /// <summary>
-        /// Executes the Cmdlet. This is a callback function to simplify the execption handling
+        /// Executes the Cmdlet. This is a callback function to simplify the exception handling
         /// </summary>
-        protected abstract void ExecuteCmdletInternal();
+        protected abstract void ProcessRecordInternal();
 
         /// <summary>
         /// Execute the cmdlet
@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Commands.Insights
         {
             try
             {
-                this.ExecuteCmdletInternal();
+                this.ProcessRecordInternal();
             }
             catch (AggregateException ex)
             {

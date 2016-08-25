@@ -18,9 +18,9 @@ Full Zone CRUD cycle
 #>
 function Test-ZoneCrud
 {
-	$zoneName = getAssetname
+	$zoneName = Get-RandomZoneName
     $resourceGroup = TestSetup-CreateResourceGroup
-	$createdZone = New-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName -Tags @{Name="tag1";Value="value1"}
+	$createdZone = New-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName -Tags @{tag1="value1"}
 
 	Assert-NotNull $createdZone
 	Assert-NotNull $createdZone.Etag
@@ -28,7 +28,7 @@ function Test-ZoneCrud
 	Assert-AreEqual $resourceGroup.ResourceGroupName $createdZone.ResourceGroupName 
 	Assert-AreEqual 1 $createdZone.Tags.Count
 
-	$retrievedZone = Get-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName
+	$retrievedZone = Get-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName
 
 	Assert-NotNull $retrievedZone
 	Assert-NotNull $retrievedZone.Etag
@@ -37,7 +37,7 @@ function Test-ZoneCrud
 	Assert-AreEqual $retrievedZone.Etag $createdZone.Etag
 	Assert-AreEqual 1 $retrievedZone.Tags.Count
 
-	$updatedZone = Set-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName -Tags @{Name="tag1";Value="value1"},@{Name="tag2";Value="value2"}
+	$updatedZone = Set-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName -Tags @{tag1="value1";tag2="value2"}
 
 	Assert-NotNull $updatedZone
 	Assert-NotNull $updatedZone.Etag
@@ -46,7 +46,7 @@ function Test-ZoneCrud
 	Assert-AreNotEqual $updatedZone.Etag $createdZone.Etag
 	Assert-AreEqual 2 $updatedZone.Tags.Count
 
-	$retrievedZone = Get-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName
+	$retrievedZone = Get-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName
 
 	Assert-NotNull $retrievedZone
 	Assert-NotNull $retrievedZone.Etag
@@ -55,11 +55,11 @@ function Test-ZoneCrud
 	Assert-AreEqual $retrievedZone.Etag $updatedZone.Etag
 	Assert-AreEqual 2 $retrievedZone.Tags.Count
 
-	$removed = Remove-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName -PassThru -Force
+	$removed = Remove-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName -PassThru -Force
 
 	Assert-True { $removed }
 
-	Assert-Throws { Get-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName } "ResourceNotFound: Resource not found."
+	Assert-ThrowsLike { Get-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName } "*was not found*"
 }
 
 <#
@@ -68,29 +68,29 @@ Tests that the zone cmdlets trim the terminating dot from the zone name
 #>
 function Test-ZoneCrudTrimsDot
 {
-	$zoneName = getAssetname
+	$zoneName = Get-RandomZoneName
 	$zoneNameWithDot = $zoneName + "."
     $resourceGroup = TestSetup-CreateResourceGroup
-	$createdZone = New-AzureDnsZone -Name $zoneNameWithDot -ResourceGroupName $resourceGroup.ResourceGroupName
+	$createdZone = New-AzureRmDnsZone -Name $zoneNameWithDot -ResourceGroupName $resourceGroup.ResourceGroupName
 
 	Assert-NotNull $createdZone
 	Assert-AreEqual $zoneName $createdZone.Name 
 
-	$retrievedZone = Get-AzureDnsZone -Name $zoneNameWithDot -ResourceGroupName $resourceGroup.ResourceGroupName
+	$retrievedZone = Get-AzureRmDnsZone -Name $zoneNameWithDot -ResourceGroupName $resourceGroup.ResourceGroupName
 
 	Assert-NotNull $retrievedZone
 	Assert-AreEqual $zoneName $retrievedZone.Name 
 
-	$updatedZone = Set-AzureDnsZone -Name $zoneNameWithDot -ResourceGroupName $resourceGroup.ResourceGroupName -Tags @{Name="tag1";Value="value1"},@{Name="tag2";Value="value2"}
+	$updatedZone = Set-AzureRmDnsZone -Name $zoneNameWithDot -ResourceGroupName $resourceGroup.ResourceGroupName -Tags @{tag1="value1";tag2="value2"}
 
 	Assert-NotNull $updatedZone
 	Assert-AreEqual $zoneName $updatedZone.Name 
 
-	$removed = Remove-AzureDnsZone -Name $zoneNameWithDot -ResourceGroupName $resourceGroup.ResourceGroupName -PassThru -Force
+	$removed = Remove-AzureRmDnsZone -Name $zoneNameWithDot -ResourceGroupName $resourceGroup.ResourceGroupName -PassThru -Force
 
 	Assert-True { $removed }
 
-	Assert-Throws { Get-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName } "ResourceNotFound: Resource not found."
+	Assert-ThrowsLike { Get-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName } "*was not found*"
 }
 
 <#
@@ -99,8 +99,8 @@ Zone CRUD with piping
 #>
 function Test-ZoneCrudWithPiping
 {
-	$zoneName = getAssetname
-    $createdZone = TestSetup-CreateResourceGroup | New-AzureDnsZone -Name $zoneName -Tags @{Name="tag1";Value="value1"}
+	$zoneName = Get-RandomZoneName
+    $createdZone = TestSetup-CreateResourceGroup | New-AzureRmDnsZone -Name $zoneName -Tags @{tag1="value1"}
 
 	$resourceGroupName = $createdZone.ResourceGroupName
 
@@ -110,7 +110,7 @@ function Test-ZoneCrudWithPiping
 	Assert-NotNull $createdZone.ResourceGroupName
 	Assert-AreEqual 1 $createdZone.Tags.Count 
 
-	$updatedZone = Get-AzureResourceGroup -Name $resourceGroupName | Get-AzureDnsZone -Name $zoneName | Set-AzureDnsZone -Tags $null
+	$updatedZone = Get-AzureRmResourceGroup -Name $resourceGroupName | Get-AzureRmDnsZone -Name $zoneName | Set-AzureRmDnsZone -Tags $null
 
 	Assert-NotNull $updatedZone
 	Assert-NotNull $updatedZone.Etag
@@ -119,11 +119,11 @@ function Test-ZoneCrudWithPiping
 	Assert-AreNotEqual $updatedZone.Etag $createdZone.Etag
 	Assert-AreEqual 0 $updatedZone.Tags.Count 
 
-	$removed = Get-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroupName | Remove-AzureDnsZone -PassThru -Force
+	$removed = Get-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroupName | Remove-AzureRmDnsZone -PassThru -Force
 
 	Assert-True { $removed }
 
-	Assert-Throws { Get-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroupName } "ResourceNotFound: Resource not found."
+	Assert-ThrowsLike { Get-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroupName } "*was not found*"
 }
 
 <#
@@ -132,9 +132,9 @@ Tests that the zone CRUD cmdlets trim the terminating dot from the zone name whe
 #>
 function Test-ZoneCrudWithPipingTrimsDot
 {
-	$zoneName = getAssetname
+	$zoneName = Get-RandomZoneName
 	$zoneNameWithDot = $zoneName + "."
-    $createdZone = TestSetup-CreateResourceGroup | New-AzureDnsZone -Name $zoneName
+    $createdZone = TestSetup-CreateResourceGroup | New-AzureRmDnsZone -Name $zoneName
 	
 	$resourceGroupName = $createdZone.ResourceGroupName
 
@@ -142,16 +142,16 @@ function Test-ZoneCrudWithPipingTrimsDot
 	$zoneObjectWithDot.Name = $zoneNameWithDot
 	$zoneObjectWithDot.ResourceGroupName = $resourceGroupName
 
-	$updatedZone = $zoneObjectWithDot | Set-AzureDnsZone -Overwrite 
+	$updatedZone = $zoneObjectWithDot | Set-AzureRmDnsZone -Overwrite 
 
 	Assert-NotNull $updatedZone
 	Assert-AreEqual $zoneName $updatedZone.Name 
 
-	$removed = $zoneObjectWithDot | Remove-AzureDnsZone -Overwrite -PassThru -Force
+	$removed = $zoneObjectWithDot | Remove-AzureRmDnsZone -Overwrite -PassThru -Force
 
 	Assert-True { $removed }
 
-	Assert-Throws { Get-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroupName } "ResourceNotFound: Resource not found."
+	Assert-ThrowsLike { Get-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroupName } "*was not found*"
 }
 
 <#
@@ -160,14 +160,15 @@ Zone CRUD with piping
 #>
 function Test-ZoneNewAlreadyExists
 {
-	$zoneName = getAssetname
-    $createdZone = TestSetup-CreateResourceGroup | New-AzureDnsZone -Name $zoneName
+	$zoneName = Get-RandomZoneName
+    $createdZone = TestSetup-CreateResourceGroup | New-AzureRmDnsZone -Name $zoneName
 	$resourceGroupName = $createdZone.ResourceGroupName
 	Assert-NotNull $createdZone
-	
-	Assert-Throws { New-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroupName } "PreconditionFailed: The condition '*' in the If-None-Match header was not satisfied. The current was 'n/a'."
 
-	$createdZone | Remove-AzureDnsZone -PassThru -Force
+	$message = [System.String]::Format("The Zone {0} exists already and hence cannot be created again.", $zoneName);
+	Assert-Throws { New-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroupName } $message
+
+	$createdZone | Remove-AzureRmDnsZone -PassThru -Force
 }
 
 <#
@@ -176,19 +177,20 @@ Zone CRUD with piping
 #>
 function Test-ZoneSetEtagMismatch
 {
-	$zoneName = getAssetname
-    $createdZone = TestSetup-CreateResourceGroup | New-AzureDnsZone -Name $zoneName
+	$zoneName = Get-RandomZoneName
+    $createdZone = TestSetup-CreateResourceGroup | New-AzureRmDnsZone -Name $zoneName
 	$originalEtag = $createdZone.Etag
 	$createdZone.Etag = "gibberish"
 
-	Assert-Throws { $createdZone | Set-AzureDnsZone } "PreconditionFailed: The condition 'gibberish' in the If-Match header was not satisfied. The current was '$originalEtag'."
+	$message = [System.String]::Format("The Zone {0} has been modified (etag mismatch).", $zoneName);
+	Assert-Throws { $createdZone | Set-AzureRmDnsZone } $message
 
-	$updatedZone = $createdZone | Set-AzureDnsZone -Overwrite
+	$updatedZone = $createdZone | Set-AzureRmDnsZone -Overwrite
 
 	Assert-AreNotEqual "gibberish" $updatedZone.Etag
 	Assert-AreNotEqual $createdZone.Etag $updatedZone.Etag
 
-	$updatedZone | Remove-AzureDnsZone -PassThru -Force
+	$updatedZone | Remove-AzureRmDnsZone -PassThru -Force
 }
 
 <#
@@ -197,10 +199,11 @@ Zone CRUD with piping
 #>
 function Test-ZoneSetNotFound
 {
-	$zoneName = getAssetname
+	$zoneName = Get-RandomZoneName
     $resourceGroup = TestSetup-CreateResourceGroup
-	
-	Assert-Throws { Set-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName } "PreconditionFailed: The condition '*' in the If-Match header was not satisfied. The current was 'n/a'."
+
+	$message = [System.String]::Format("The Zone {0} has been modified (etag mismatch).", $zoneName);
+	Assert-Throws { Set-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName } $message;
 }
 
 <#
@@ -209,14 +212,15 @@ Zone CRUD with piping
 #>
 function Test-ZoneRemoveEtagMismatch
 {
-	$zoneName = getAssetname
-    $createdZone = TestSetup-CreateResourceGroup | New-AzureDnsZone -Name $zoneName
+	$zoneName = Get-RandomZoneName
+    $createdZone = TestSetup-CreateResourceGroup | New-AzureRmDnsZone -Name $zoneName
 	$originalEtag = $createdZone.Etag
 	$createdZone.Etag = "gibberish"
 
-	Assert-Throws { $createdZone | Remove-AzureDnsZone -Force } "PreconditionFailed: The condition 'gibberish' in the If-Match header was not satisfied. The current was '$originalEtag'."
+	$message = [System.String]::Format("The Zone {0} has been modified (etag mismatch).", $zoneName);
+	Assert-Throws { $createdZone | Remove-AzureRmDnsZone -Force } $message
 
-	$removed = $createdZone | Remove-AzureDnsZone -Overwrite -Force -PassThru
+	$removed = $createdZone | Remove-AzureRmDnsZone -Overwrite -Force -PassThru
 
 	Assert-True { $removed }
 }
@@ -227,11 +231,10 @@ Zone CRUD with piping
 #>
 function Test-ZoneRemoveNonExisting
 {
-	$zoneName = getAssetname
+	$zoneName = Get-RandomZoneName
     $resourceGroup = TestSetup-CreateResourceGroup
 	
-	$removed = Remove-AzureDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName -Force -PassThru
-	Assert-True { $removed }
+	$removed = Remove-AzureRmDnsZone -Name $zoneName -ResourceGroupName $resourceGroup.ResourceGroupName -Force -PassThru
 }
 
 <#
@@ -240,13 +243,13 @@ Zone List
 #>
 function Test-ZoneList
 {
-	$zoneName1 = getAssetname
+	$zoneName1 = Get-RandomZoneName
 	$zoneName2 = $zoneName1 + "A"
 	$resourceGroup = TestSetup-CreateResourceGroup
-    $createdZone1 = $resourceGroup | New-AzureDnsZone -Name $zoneName1 -Tags @{Name="tag1";Value="value1"}
-	$createdZone2 = $resourceGroup | New-AzureDnsZone -Name $zoneName2
+    $createdZone1 = $resourceGroup | New-AzureRmDnsZone -Name $zoneName1 -Tags @{tag1="value1"}
+	$createdZone2 = $resourceGroup | New-AzureRmDnsZone -Name $zoneName2
 
-	$result = Get-AzureDnsZone -ResourceGroupName $resourceGroup.ResourceGroupName
+	$result = Get-AzureRmDnsZone -ResourceGroupName $resourceGroup.ResourceGroupName
 
 	Assert-AreEqual 2 $result.Count
 
@@ -260,7 +263,23 @@ function Test-ZoneList
 	Assert-NotNull $resourceGroup.ResourceGroupName $result[1].ResourceGroupName
 	Assert-AreEqual 0 $result[1].Tags.Count 
 
-	$result | Remove-AzureDnsZone -PassThru -Force
+	$result | Remove-AzureRmDnsZone -PassThru -Force
+}
+
+function Test-ZoneListSubscription
+{
+	$zoneName1 = Get-RandomZoneName
+	$zoneName2 = $zoneName1 + "A"
+	$resourceGroup = TestSetup-CreateResourceGroup
+    $createdZone1 = $resourceGroup | New-AzureRmDnsZone -Name $zoneName1 -Tags @{tag1="value1"}
+	$createdZone2 = $resourceGroup | New-AzureRmDnsZone -Name $zoneName2
+
+	$result = Get-AzureRmDnsZone
+
+	Assert-True   { $result.Count -ge 2 }
+
+	$createdZone1 | Remove-AzureRmDnsZone -PassThru -Force
+	$createdZone2 | Remove-AzureRmDnsZone -PassThru -Force
 }
 
 <#
@@ -271,13 +290,13 @@ function Test-ZoneListWithEndsWith
 {
 	$suffix = ".com"
 	$suffixWithDot = ".com."
-	$zoneName1 = getAssetname
+	$zoneName1 = Get-RandomZoneName
 	$zoneName2 = $zoneName1 + $suffix
 	$resourceGroup = TestSetup-CreateResourceGroup
-    $createdZone1 = $resourceGroup | New-AzureDnsZone -Name $zoneName1 
-	$createdZone2 = $resourceGroup | New-AzureDnsZone -Name $zoneName2
+    $createdZone1 = $resourceGroup | New-AzureRmDnsZone -Name $zoneName1 
+	$createdZone2 = $resourceGroup | New-AzureRmDnsZone -Name $zoneName2
 
-	$result = Get-AzureDnsZone -ResourceGroupName $resourceGroup.ResourceGroupName -EndsWith $suffixWithDot
+	$result = Get-AzureRmDnsZone -ResourceGroupName $resourceGroup.ResourceGroupName -EndsWith $suffixWithDot
 
 	Assert-AreEqual 1 $result.Count
 
@@ -285,5 +304,5 @@ function Test-ZoneListWithEndsWith
 	Assert-AreEqual $createdZone2.Name $result[0].Name
 	Assert-NotNull $resourceGroup.ResourceGroupName $result[0].ResourceGroupName
 
-	$result | Remove-AzureDnsZone -PassThru -Force
+	$result | Remove-AzureRmDnsZone -PassThru -Force
 }

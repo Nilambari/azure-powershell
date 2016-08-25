@@ -23,14 +23,10 @@ Get test key name
 #>
 function Get-KeyVault([bool] $haspermission=$true)
 {
-    if ($global:testEnv -eq 'BVT' -and $haspermission)
-    {        
-        return 'powershellbvt'
-    }
-    elseif ($global:testEnv -eq 'BVT')
+    if ($global:testVault -ne "" -and $haspermission)
     {
-        return 'azkmstestbvteu2'
-    }
+        return $global:testVault
+    }   
     elseif ($haspermission)
     {
         return 'azkmspsprodeus'    
@@ -56,7 +52,7 @@ Get test secret name
 #>
 function Get-SecretName([string]$suffix)
 {
-    return 'pshts-' + $global:testns+ '-' + $suffix
+    return 'pshts-' + $global:testns + '-' + $suffix
 }
 
 
@@ -88,11 +84,40 @@ function Get-ImportKeyFile([string]$filesuffix, [bool] $exists=$true)
 
 <#
 .SYNOPSIS
-Remove log file under a folder
+Get 1024 bit key file path to be imported
 #>
-function Cleanup-Log([string]$rootfolder)
-{    
-    Get-ChildItem –Path $rootfolder -Include *.debug_log -Recurse | where {$_.mode -match "a"} | Remove-Item -Force     
+function Get-ImportKeyFile1024([string]$filesuffix, [bool] $exists=$true)
+{
+    if ($exists)
+    {
+        $file = "$filesuffix"+"test1024.$filesuffix"
+    }
+    else
+    {
+        $file = "notexist" + ".$filesuffix"
+    }
+
+    if ($global:testEnv -eq 'BVT')
+    {       
+        return Join-Path $invocationPath "bvtdata\$file"        
+    }
+    else
+    {
+        return Join-Path $invocationPath "proddata\$file"
+    }
+}
+
+<#
+.SYNOPSIS
+Remove log files under the given folder.
+#>
+function Cleanup-LogFiles([string]$rootfolder)
+{
+    Write-Host "Cleaning up log files from $rootfolder..."
+    
+    Get-ChildItem –Path $rootfolder -Include *.debug_log -Recurse |
+        where {$_.mode -match "a"} |
+        Remove-Item -Force     
 }
 
 <#
@@ -104,7 +129,7 @@ function Move-Log([string]$rootfolder)
     $logfolder = Join-Path $rootfolder ("$global:testEnv"+"$global:testns"+"log")
     if (Test-Path $logfolder)
     {
-        Cleanup-Log $logfolder
+        Cleanup-LogFiles $logfolder
     }
     else
     {
@@ -117,24 +142,32 @@ function Move-Log([string]$rootfolder)
 
 <#
 .SYNOPSIS
-Removes all keys starting with the prefix
+Remove all old keys starting with the given prefix.
 #>
-function Initialize-KeyTest
+function Cleanup-OldKeys
 {
+    Write-Host "Cleaning up old keys..."
+
     $keyVault = Get-KeyVault
     $keyPattern = Get-KeyName '*'
-    Get-AzureKeyVaultKey $keyVault  | Where-Object {$_.KeyName -like $keyPattern}  | Remove-AzureKeyVaultKey -Force -Confirm:$false
+    Get-AzureKeyVaultKey $keyVault |
+        Where-Object {$_.KeyName -like $keyPattern} |
+        Remove-AzureKeyVaultKey -Force -Confirm:$false
 }
 
 <#
 .SYNOPSIS
-Removes all secrets starting with the prefix
+Remove all old secrets starting with the given prefix.
 #>
-function Initialize-SecretTest
+function Cleanup-OldSecrets
 {
+    Write-Host "Cleaning up old secrets..."
+
     $keyVault = Get-KeyVault
     $secretPattern = Get-SecretName '*'
-    Get-AzureKeyVaultSecret $keyVault  | Where-Object {$_.SecretName -like $secretPattern}  | Remove-AzureKeyVaultSecret -Force -Confirm:$false
+    Get-AzureKeyVaultSecret $keyVault |
+        Where-Object {$_.SecretName -like $secretPattern} |
+        Remove-AzureKeyVaultSecret -Force -Confirm:$false
 }
 
 
@@ -212,6 +245,18 @@ function Run-SecretTest ([ScriptBlock] $test, [string] $testName)
    finally 
    {
      Cleanup-SingleSecretTest *>> "$testName.debug_log"
+   }
+}
+
+function Run-VaultTest ([ScriptBlock] $test, [string] $testName)
+{   
+   try 
+   {
+     Run-Test $test $testName *>> "$testName.debug_log"
+   }
+   finally 
+   {
+     
    }
 }
 

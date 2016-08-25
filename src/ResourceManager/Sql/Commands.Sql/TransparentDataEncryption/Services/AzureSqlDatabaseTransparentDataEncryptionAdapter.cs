@@ -12,16 +12,14 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
+using Microsoft.Azure.Commands.Common.Authentication.Models;
+using Microsoft.Azure.Commands.Sql.Services;
+using Microsoft.Azure.Commands.Sql.TransparentDataEncryption.Model;
+using Microsoft.Azure.Commands.Sql.TransparentDataEncryption.Services;
+using Microsoft.Azure.Management.Sql.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Azure.Commands.Sql.Common;
-using Microsoft.Azure.Commands.Sql.TransparentDataEncryption.Model;
-using Microsoft.Azure.Commands.Sql.TransparentDataEncryption.Services;
-using Microsoft.Azure.Commands.Sql.Services;
-using Microsoft.Azure.Common.Authentication.Models;
-using Microsoft.Azure.Management.Sql;
-using Microsoft.Azure.Management.Sql.Models;
 
 namespace Microsoft.Azure.Commands.Sql.TransparentDataEncryption.Adapter
 {
@@ -38,17 +36,17 @@ namespace Microsoft.Azure.Commands.Sql.TransparentDataEncryption.Adapter
         /// <summary>
         /// Gets or sets the Azure profile
         /// </summary>
-        public AzureProfile Profile { get; set; }
+        public AzureContext Context { get; set; }
 
         /// <summary>
         /// Constructs a Transparent Data Encryption adapter
         /// </summary>
         /// <param name="profile">The current azure profile</param>
         /// <param name="subscription">The current azure subscription</param>
-        public AzureSqlDatabaseTransparentDataEncryptionAdapter(AzureProfile profile, AzureSubscription subscription)
+        public AzureSqlDatabaseTransparentDataEncryptionAdapter(AzureContext context)
         {
-            Profile = profile;
-            Communicator = new AzureSqlDatabaseTransparentDataEncryptionCommunicator(Profile, subscription);
+            Context = context;
+            Communicator = new AzureSqlDatabaseTransparentDataEncryptionCommunicator(Context);
         }
 
         /// <summary>
@@ -74,12 +72,12 @@ namespace Microsoft.Azure.Commands.Sql.TransparentDataEncryption.Adapter
         public AzureSqlDatabaseTransparentDataEncryptionModel UpsertTransparentDataEncryption(AzureSqlDatabaseTransparentDataEncryptionModel model)
         {
             var resp = Communicator.CreateOrUpdate(model.ResourceGroupName, model.ServerName, model.DatabaseName, Util.GenerateTracingId(), new TransparentDataEncryptionCreateOrUpdateParameters()
+            {
+                Properties = new TransparentDataEncryptionCreateOrUpdateProperties()
                 {
-                    Properties = new TransparentDataEncryptionCreateOrUpdateProperties()
-                    {
-                        State = model.State.ToString(),
-                    }
-                });
+                    State = model.State.ToString(),
+                }
+            });
 
             return CreateTransparentDataEncryptionModelFromResponse(model.ResourceGroupName, model.ServerName, model.DatabaseName, resp);
         }

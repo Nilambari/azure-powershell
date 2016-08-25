@@ -14,7 +14,6 @@
 
 using Microsoft.Azure.Commands.Compute.Common;
 using Microsoft.Azure.Commands.Compute.Models;
-using Microsoft.WindowsAzure.Commands.Utilities.Common;
 using System;
 using System.Linq;
 using System.Management.Automation;
@@ -26,7 +25,7 @@ namespace Microsoft.Azure.Commands.Compute
         ProfileNouns.DataDisk),
     OutputType(
         typeof(PSVirtualMachine))]
-    public class RemoveAzureVMDataDiskCommand : AzurePSCmdlet
+    public class RemoveAzureVMDataDiskCommand : Microsoft.Azure.Commands.ResourceManager.Common.AzureRMCmdlet
     {
         [Alias("VMProfile")]
         [Parameter(
@@ -38,13 +37,14 @@ namespace Microsoft.Azure.Commands.Compute
         [ValidateNotNullOrEmpty]
         public PSVirtualMachine VM { get; set; }
 
+        [Alias("Name")]
         [Parameter(
             Mandatory = true,
             Position = 1,
             ValueFromPipelineByPropertyName = true,
             HelpMessage = HelpMessages.VMDataDiskName)]
         [ValidateNotNullOrEmpty]
-        public string Name { get; set; }
+        public string[] DataDiskNames { get; set; }
 
         public override void ExecuteCmdlet()
         {
@@ -54,12 +54,15 @@ namespace Microsoft.Azure.Commands.Compute
             {
                 var disks = storageProfile.DataDisks.ToList();
                 var comp = StringComparison.OrdinalIgnoreCase;
-                disks.RemoveAll(d => string.Equals(d.Name, this.Name, comp));
+                foreach (var diskName in DataDiskNames)
+                {
+                    disks.RemoveAll(d => string.Equals(d.Name, diskName, comp));
+                }
                 storageProfile.DataDisks = disks;
             }
 
             this.VM.StorageProfile = storageProfile;
-            
+
             WriteObject(this.VM);
         }
     }

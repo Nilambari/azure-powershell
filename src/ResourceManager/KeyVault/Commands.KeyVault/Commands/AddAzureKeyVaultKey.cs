@@ -12,13 +12,13 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using System;
-using System.IO;
-using System.Security;
-using System.Collections;
-using System.Management.Automation;
 using Microsoft.Azure.Commands.KeyVault.Models;
 using Microsoft.Azure.KeyVault.WebKey;
+using System;
+using System.Collections;
+using System.IO;
+using System.Management.Automation;
+using System.Security;
 using KeyVaultProperties = Microsoft.Azure.Commands.KeyVault.Properties;
 
 
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.Commands.KeyVault
     /// attributes
     /// </summary>
     [Cmdlet(VerbsCommon.Add, "AzureKeyVaultKey",
-        DefaultParameterSetName = CreateParameterSet, 
+        DefaultParameterSetName = CreateParameterSet,
         HelpUri = Constants.KeyVaultHelpUri)]
     [OutputType(typeof(KeyBundle))]
     public class AddAzureKeyVaultKey : KeyVaultCmdletBase
@@ -112,7 +112,7 @@ namespace Microsoft.Azure.Commands.KeyVault
         [Parameter(Mandatory = false,
             ParameterSetName = ImportParameterSet,
             HelpMessage = "Specifies whether to add the key as a software-protected key or an HSM-protected key in the Key Vault service. Valid values are: HSM and Software. ")]
-        [ValidateSetAttribute(new string[] { HsmDestination, SoftwareDestination })]
+        [ValidateSetAttribute(HsmDestination, SoftwareDestination)]
         public string Destination { get; set; }
 
         /// <summary>

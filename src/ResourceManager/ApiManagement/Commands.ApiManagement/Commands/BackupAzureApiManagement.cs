@@ -14,13 +14,12 @@
 
 namespace Microsoft.Azure.Commands.ApiManagement.Commands
 {
-    using System;
-    using System.Management.Automation;
     using Microsoft.Azure.Commands.ApiManagement.Models;
     using Microsoft.WindowsAzure.Commands.Common.Storage;
+    using System.Management.Automation;
 
-      
-    [Cmdlet(VerbsData.Backup, "AzureApiManagement"), OutputType(typeof(PsApiManagement))]
+
+    [Cmdlet(VerbsData.Backup, "AzureRmApiManagement"), OutputType(typeof(PsApiManagement))]
     public class BackupAzureApiManagement : AzureApiManagementCmdletBase
     {
         [Parameter(

@@ -12,15 +12,15 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using Microsoft.Azure.Common.Authentication;
-using Microsoft.Azure.Common.Authentication.Models;
+using Microsoft.Azure.Commands.Common.Authentication;
+using Microsoft.Azure.Commands.Common.Authentication.Models;
+using Microsoft.Azure.Commands.Sql.Common;
 using Microsoft.Azure.Management.Resources;
 using Microsoft.Azure.Management.Sql;
 using Microsoft.Azure.Management.Sql.Models;
 using Microsoft.WindowsAzure.Management.Storage;
-using Microsoft.Azure.Commands.Sql.Common;
+using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Azure.Commands.Sql.TransparentDataEncryption.Services
 {
@@ -33,28 +33,28 @@ namespace Microsoft.Azure.Commands.Sql.TransparentDataEncryption.Services
         /// The Sql client to be used by this end points communicator
         /// </summary>
         private static SqlManagementClient SqlClient { get; set; }
-        
+
         /// <summary>
         /// Gets or set the Azure subscription
         /// </summary>
-        private static AzureSubscription Subscription {get ; set; }
+        private static AzureSubscription Subscription { get; set; }
 
         /// <summary>
         /// Gets or sets the Azure profile
         /// </summary>
-        public AzureProfile Profile { get; set; }
+        public AzureContext Context { get; set; }
 
         /// <summary>
         /// Creates a communicator for Azure Sql Databases TransparentDataEncryption
         /// </summary>
         /// <param name="profile"></param>
         /// <param name="subscription"></param>
-        public AzureSqlDatabaseTransparentDataEncryptionCommunicator(AzureProfile profile, AzureSubscription subscription)
+        public AzureSqlDatabaseTransparentDataEncryptionCommunicator(AzureContext context)
         {
-            Profile = profile;
-            if (subscription != Subscription)
+            Context = context;
+            if (context.Subscription != Subscription)
             {
-                Subscription = subscription;
+                Subscription = context.Subscription;
                 SqlClient = null;
             }
         }
@@ -93,7 +93,7 @@ namespace Microsoft.Azure.Commands.Sql.TransparentDataEncryption.Services
             // Get the SQL management client for the current subscription
             if (SqlClient == null)
             {
-                SqlClient = AzureSession.ClientFactory.CreateClient<SqlManagementClient>(Profile, Subscription, AzureEnvironment.Endpoint.ResourceManager);
+                SqlClient = AzureSession.ClientFactory.CreateClient<SqlManagementClient>(Context, AzureEnvironment.Endpoint.ResourceManager);
             }
             SqlClient.HttpClient.DefaultRequestHeaders.Remove(Constants.ClientRequestIdHeaderName);
             SqlClient.HttpClient.DefaultRequestHeaders.Add(Constants.ClientRequestIdHeaderName, clientRequestId);

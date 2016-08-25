@@ -13,46 +13,25 @@
 // ----------------------------------------------------------------------------------
 
 using Microsoft.Azure.Commands.ScenarioTest.SqlTests;
+using Microsoft.Azure.ServiceManagemenet.Common.Models;
 using Microsoft.WindowsAzure.Commands.ScenarioTest;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Azure.Commands.Sql.Test.ScenarioTests
 {
     public class RecommendedElasticPoolTests : SqlTestsBase
     {
-        [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
-        public void TestRecommendedElasticPoolList()
+        public RecommendedElasticPoolTests(ITestOutputHelper output)
         {
-            RunPowerShellTest("Test-ListRecommendedElasticPools");
+            XunitTracingInterceptor.AddToContext(new XunitTracingInterceptor(output));
         }
 
         [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
-        public void TestRecommendedElasticPoolGet()
+        [Trait(Category.AcceptanceType, Category.CheckIn)]
+        public void ListRecommendedElasticPools()
         {
-            RunPowerShellTest("Test-GetRecommendedElasticPool");
-        }
-
-        [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
-        public void TestRecommendedElasticPoolListDatabase()
-        {
-            RunPowerShellTest("Test-ListRecommendedElasticPoolDatabases");
-        }
-
-        [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
-        public void TestRecommendedElasticPoolGetDatabase()
-        {
-            RunPowerShellTest("Test-GetRecommendedElasticPoolDatabase");
-        }
-
-        [Fact]
-        [Trait(Category.Sql, Category.CheckIn)]
-        public void TestRecommendedElasticPoolGetMetrics()
-        {
-            RunPowerShellTest("Test-GetRecommendedElasticPoolMetrics");
+            RunPowerShellTest("Test-ElasticPoolRecommendation");
         }
     }
 }

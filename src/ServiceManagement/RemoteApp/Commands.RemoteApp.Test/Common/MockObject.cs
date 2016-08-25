@@ -12,11 +12,11 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-namespace Microsoft.Azure.Commands.RemoteApp.Test.Common
+namespace Microsoft.WindowsAzure.Commands.RemoteApp.Test.Common
 {
     using Microsoft.Azure;
-    using Microsoft.Azure.Management.RemoteApp.Cmdlets;
-    using Microsoft.Azure.Management.RemoteApp.Models;
+    using Microsoft.WindowsAzure.Management.RemoteApp.Cmdlets;
+    using Microsoft.WindowsAzure.Management.RemoteApp.Models;
     using Microsoft.WindowsAzure.Commands.Common.Test.Mocks;
     using System;
     using System.Collections.Generic;
@@ -42,6 +42,8 @@ namespace Microsoft.Azure.Commands.RemoteApp.Test.Common
     public partial class MockObject
     {
         internal static IList<Collection> mockCollectionList { get; set; }
+
+        internal static IList<RemoteAppVm> mockVmList { get; set; }
 
         internal static IList<Region> mockRegionList {get; set;}
 
@@ -103,6 +105,10 @@ namespace Microsoft.Azure.Commands.RemoteApp.Test.Common
             if (typeof(T) == typeof(Collection))
             {
                 expectedResults = ConvertList<T>(mockCollectionList);
+            }
+            else if (typeof(T) == typeof(RemoteAppVm))
+            {
+                expectedResults = ConvertList<T>(mockVmList);
             }
             else if (typeof(T) == typeof(Region))
             {

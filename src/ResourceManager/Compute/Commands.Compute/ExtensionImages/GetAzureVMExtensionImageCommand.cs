@@ -14,8 +14,8 @@
 
 using Microsoft.Azure.Commands.Compute.Common;
 using Microsoft.Azure.Commands.Compute.Models;
-using Microsoft.Azure.Management.Compute;
 using Microsoft.Azure.Management.Compute.Models;
+using Microsoft.Rest.Azure.OData;
 using System.Linq;
 using System.Management.Automation;
 
@@ -23,6 +23,7 @@ namespace Microsoft.Azure.Commands.Compute
 {
     [Cmdlet(VerbsCommon.Get, ProfileNouns.VirtualMachineExtensionImage)]
     [OutputType(typeof(PSVirtualMachineExtensionImage))]
+    [OutputType(typeof(PSVirtualMachineExtensionImageDetails))]
     public class GetAzureVMExtensionImageCommand : VirtualMachineExtensionImageBaseCmdlet
     {
         [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true), ValidateNotNullOrEmpty]
@@ -37,34 +38,69 @@ namespace Microsoft.Azure.Commands.Compute
         [Parameter, ValidateNotNullOrEmpty]
         public string FilterExpression { get; set; }
 
+        [Parameter(Mandatory = false, ValueFromPipelineByPropertyName = true)]
+        public string Version { get; set; }
+
         public override void ExecuteCmdlet()
         {
             base.ExecuteCmdlet();
 
-            var parameters = new VirtualMachineExtensionImageListVersionsParameters
+            ExecuteClientAction(() =>
             {
-                Location = Location.Canonicalize(),
-                PublisherName = PublisherName,
-                Type = Type,
-                FilterExpression = FilterExpression
-            };
+                if (string.IsNullOrEmpty(this.Version))
+                {
+                    var filter = new ODataQuery<VirtualMachineExtensionImage>(this.FilterExpression);
 
-            VirtualMachineImageResourceList result = this.VirtualMachineExtensionImageClient.ListVersions(parameters);
+                    var result = this.VirtualMachineExtensionImageClient.ListVersionsWithHttpMessagesAsync(
+                        this.Location.Canonicalize(),
+                        this.PublisherName,
+                        this.Type,
+                        odataQuery: filter).GetAwaiter().GetResult();
 
-            var images = from r in result.Resources
-                         select new PSVirtualMachineExtensionImage
-                         {
-                             RequestId = result.RequestId,
-                             StatusCode = result.StatusCode,
-                             Id = r.Id,
-                             Location = r.Location,
-                             Version = r.Name,
-                             PublisherName = this.PublisherName,
-                             Type = this.Type,
-                             FilterExpression = this.FilterExpression
-                         };
+                    var images = from r in result.Body
+                                 select new PSVirtualMachineExtensionImage
+                                 {
+                                     RequestId = result.RequestId,
+                                     StatusCode = result.Response.StatusCode,
+                                     Id = r.Id,
+                                     Location = r.Location,
+                                     Version = r.Name,
+                                     PublisherName = this.PublisherName,
+                                     Type = this.Type,
+                                     FilterExpression = this.FilterExpression
+                                 };
 
-            WriteObject(images, true);
+                    WriteObject(images, true);
+                }
+                else
+                {
+                    var result = this.VirtualMachineExtensionImageClient.GetWithHttpMessagesAsync(
+                        this.Location.Canonicalize(),
+                        this.PublisherName,
+                        this.Type,
+                        this.Version).GetAwaiter().GetResult();
+
+
+                    var image = new PSVirtualMachineExtensionImageDetails
+                    {
+                        RequestId = result.RequestId,
+                        StatusCode = result.Response.StatusCode,
+                        Id = result.Body.Id,
+                        Location = result.Body.Location,
+                        HandlerSchema = result.Body.HandlerSchema,
+                        OperatingSystem = result.Body.OperatingSystem,
+                        ComputeRole = result.Body.ComputeRole,
+                        SupportsMultipleExtensions = result.Body.SupportsMultipleExtensions,
+                        VMScaleSetEnabled = result.Body.VmScaleSetEnabled,
+                        Version = result.Body.Name,
+                        PublisherName = this.PublisherName,
+                        Type = this.Type,
+                        FilterExpression = this.FilterExpression
+                    };
+
+                    WriteObject(image);
+                }
+            });
         }
     }
 }

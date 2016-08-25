@@ -15,7 +15,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Microsoft.Azure.KeyVault;
 
 namespace Microsoft.Azure.Commands.KeyVault.Models
 {
@@ -25,7 +24,7 @@ namespace Microsoft.Azure.Commands.KeyVault.Models
     public class KeyAttributes
     {
         public KeyAttributes()
-        { }        
+        { }
 
         internal KeyAttributes(bool? enabled, DateTime? expires, DateTime? notBefore, string keyType,
             string[] keyOps, Hashtable tags)
@@ -38,7 +37,7 @@ namespace Microsoft.Azure.Commands.KeyVault.Models
             this.Tags = tags;
         }
 
-        internal KeyAttributes(bool? enabled, DateTime? expires, DateTime? notBefore, string keyType, 
+        internal KeyAttributes(bool? enabled, DateTime? expires, DateTime? notBefore, string keyType,
             string[] keyOps, DateTime? created, DateTime? updated, Dictionary<string, string> tags)
         {
             this.Enabled = enabled;
@@ -48,15 +47,15 @@ namespace Microsoft.Azure.Commands.KeyVault.Models
             this.KeyOps = keyOps;
             this.Created = created;
             this.Updated = updated;
-            this.Tags = (tags == null) ? null : tags.ConvertToHashtable();     
+            this.Tags = (tags == null) ? null : tags.ConvertToHashtable();
         }
-     
+
         public bool? Enabled { get; set; }
 
         public DateTime? Expires { get; set; }
 
         public DateTime? NotBefore { get; set; }
-        
+
         public string[] KeyOps { get; set; }
 
         public string KeyType { get; private set; }
@@ -82,14 +81,14 @@ namespace Microsoft.Azure.Commands.KeyVault.Models
             }
         }
 
-        public static explicit operator Microsoft.Azure.KeyVault.KeyAttributes(KeyAttributes attr)
+        public static explicit operator Azure.KeyVault.KeyAttributes(KeyAttributes attr)
         {
-            return new Microsoft.Azure.KeyVault.KeyAttributes()
+            return new Azure.KeyVault.KeyAttributes()
             {
                 Enabled = attr.Enabled,
                 NotBefore = attr.NotBefore,
                 Expires = attr.Expires
             };
-        }       
+        }
     }
 }

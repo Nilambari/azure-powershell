@@ -12,22 +12,14 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using Microsoft.Azure.Common.Authentication;
-using Microsoft.Azure.Management.Authorization;
-using Microsoft.Azure.Management.Resources;
-using Microsoft.Azure.Subscriptions;
-using Microsoft.Azure.Test.HttpRecorder;
-using Microsoft.WindowsAzure.Commands.ScenarioTest;
-using Microsoft.WindowsAzure.Commands.Utilities.Common;
+using Microsoft.Azure.Commands.Common.Authentication;
+using Microsoft.Azure.Commands.Common.Authentication.Models;
 using Microsoft.Azure.Test;
+using Microsoft.Azure.Test.HttpRecorder;
+using Microsoft.WindowsAzure.Commands.Common;
+using Microsoft.WindowsAzure.Commands.ScenarioTest;
 using System;
-using System.Linq;
-using Microsoft.Azure.Gallery;
-using Microsoft.Azure.Graph.RBAC;
-using Microsoft.Azure.Management.KeyVault;
-using Microsoft.Azure.Common.Authentication.Models;
 using System.Collections.Generic;
-
 
 namespace Microsoft.Azure.Commands.KeyVault.Test
 {
@@ -44,13 +36,13 @@ namespace Microsoft.Azure.Commands.KeyVault.Test
                 //Overwrite the default subscription and default account
                 //with ones using user ID and tenant ID from auth context
                 var user = GetUser(csmEnvironment);
-                var tenantId = GetTenantId(csmEnvironment);                
+                var tenantId = GetTenantId(csmEnvironment);
 
                 var testSubscription = new AzureSubscription()
                 {
                     Id = new Guid(csmEnvironment.SubscriptionId),
-                    Name = ProfileClient.Profile.DefaultSubscription.Name,
-                    Environment = ProfileClient.Profile.DefaultSubscription.Environment,
+                    Name = AzureRmProfileProvider.Instance.Profile.Context.Subscription.Name,
+                    Environment = AzureRmProfileProvider.Instance.Profile.Context.Environment.Name,
                     Account = user,
                     Properties = new Dictionary<AzureSubscription.Property, string>
                     {
@@ -73,12 +65,7 @@ namespace Microsoft.Azure.Commands.KeyVault.Test
                     }
                 };
 
-                ProfileClient.Profile.Accounts.Remove(ProfileClient.Profile.DefaultSubscription.Account);
-                ProfileClient.Profile.Subscriptions[testSubscription.Id] = testSubscription;
-                ProfileClient.Profile.Accounts[testAccount.Id] = testAccount;                
-                ProfileClient.SetSubscriptionAsDefault(testSubscription.Name, testSubscription.Account);
-                
-                ProfileClient.Profile.Save();
+                AzureRmProfileProvider.Instance.Profile.Context = new AzureContext(testSubscription, testAccount, AzureRmProfileProvider.Instance.Profile.Context.Environment, new AzureTenant { Id = new Guid(tenantId) });
             }
         }
 
@@ -86,8 +73,8 @@ namespace Microsoft.Azure.Commands.KeyVault.Test
         {
             if (HttpMockServer.Mode == HttpRecorderMode.Record)
             {
-                HttpMockServer.Variables["TenantId"] = environment.AuthorizationContext.TenatId;
-                return environment.AuthorizationContext.TenatId;
+                HttpMockServer.Variables["TenantId"] = environment.AuthorizationContext.TenantId;
+                return environment.AuthorizationContext.TenantId;
             }
             else
             {

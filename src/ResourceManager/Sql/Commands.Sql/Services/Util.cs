@@ -12,11 +12,10 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
+using Microsoft.Azure.Commands.Sql.Common;
 using System;
 using System.Globalization;
 using System.Linq;
-using Microsoft.Azure.Commands.Sql.Security.Services;
-using Microsoft.Azure.Commands.Sql.Properties;
 
 namespace Microsoft.Azure.Commands.Sql.Services
 {
@@ -46,14 +45,7 @@ namespace Microsoft.Azure.Commands.Sql.Services
             {
                 return eventTypes;
             }
-            string[] deprecatedAuditEvents = 
-            {
-                SecurityConstants.DeprecatedAuditEvents.DataAccess,
-                SecurityConstants.DeprecatedAuditEvents.DataChanges,
-                SecurityConstants.DeprecatedAuditEvents.SecurityExceptions,
-                SecurityConstants.DeprecatedAuditEvents.RevokePermissions,
-                SecurityConstants.DeprecatedAuditEvents.SchemaChanges
-            };
+
 
             string[] auditEvents =
             {
@@ -78,28 +70,48 @@ namespace Microsoft.Azure.Commands.Sql.Services
                 }
                 if (eventTypes[0] == SecurityConstants.All)
                 {
-                    return auditEvents.Union(deprecatedAuditEvents).ToArray();
+                    return auditEvents;
                 }
             }
             else
             {
                 if (eventTypes.Contains(SecurityConstants.All))
                 {
-                    throw new Exception(string.Format(Resources.InvalidEventTypeSet, SecurityConstants.All));
+                    throw new Exception(string.Format(Properties.Resources.InvalidEventTypeSet, SecurityConstants.All));
                 }
                 if (eventTypes.Contains(SecurityConstants.None))
                 {
-                    throw new Exception(string.Format(Resources.InvalidEventTypeSet, SecurityConstants.None));
-                }
-
-                if (eventTypes.Intersect(deprecatedAuditEvents).Any() && eventTypes.Intersect(auditEvents).Any())
-                {
-                    // If the event types includes new events and deprecated events we throw error
-                    throw new Exception(Resources.InvalidDeprecatedEventTypeSet);
+                    throw new Exception(string.Format(Properties.Resources.InvalidEventTypeSet, SecurityConstants.None));
                 }
             }
             return eventTypes;
         }
 
+        /// <summary>
+        /// In cases where the user decided to use the shortcut NONE, this method sets the value of the ExcludedDetectionType property to reflect the correct values.
+        /// </summary>
+        internal static string[] ProcessExcludedDetectionTypes(string[] excludedDetectionTypes)
+        {
+            if (excludedDetectionTypes == null || excludedDetectionTypes.Length == 0)
+            {
+                return excludedDetectionTypes;
+            }
+
+            if (excludedDetectionTypes.Length == 1)
+            {
+                if (excludedDetectionTypes[0] == SecurityConstants.None)
+                {
+                    return new string[] { };
+                }
+            }
+            else
+            {
+                if (excludedDetectionTypes.Contains(SecurityConstants.None))
+                {
+                    throw new Exception(string.Format(Properties.Resources.InvalidExcludedDetectionTypeSet, SecurityConstants.None));
+                }
+            }
+            return excludedDetectionTypes;
+        }
     }
 }
