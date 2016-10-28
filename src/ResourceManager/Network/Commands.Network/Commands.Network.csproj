@@ -242,6 +242,7 @@
     <Compile Include="ApplicationGateway\SslPolicy\AzureApplicationGatewaySslPolicyBase.cs" />
     <Compile Include="ApplicationGateway\SslPolicy\GetAzureApplicationGatewaySslPolicyCommand.cs" />
     <Compile Include="ApplicationGateway\SslPolicy\NewAzureApplicationGatewaySslPolicyCommand.cs" />
+    <Compile Include="ApplicationGateway\SslPolicy\RemoveAzureApplicationGatewaySslPolicyCommand.cs" />
     <Compile Include="ApplicationGateway\SslPolicy\SetAzureApplicationGatewaySslPolicyCommand.cs" />
     <Compile Include="ApplicationGateway\StartAzureApplicationGatewayCommand.cs" />
     <Compile Include="ApplicationGateway\StopAzureApplicationGatewayCommand.cs" />
