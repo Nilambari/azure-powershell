@@ -167,6 +167,12 @@ namespace Microsoft.Azure.Commands.Network
         public List<PSVpnClientRevokedCertificate> VpnClientRevokedCertificates { get; set; }
 
         [Parameter(
+             Mandatory = false,
+             ValueFromPipelineByPropertyName = true,
+             HelpMessage = "A list of IPSec policies for P2S VPN client tunneling protocols.")]
+        public List<PSIpsecPolicy> VpnClientIpsecPolicies { get; set; }
+
+        [Parameter(
             Mandatory = false,
             ValueFromPipelineByPropertyName = true,
             HelpMessage = "The virtual network gateway's ASN for BGP over VPN")]
@@ -321,7 +327,8 @@ namespace Microsoft.Azure.Commands.Network
             if (this.VpnClientAddressPool != null ||
                 this.VpnClientRootCertificates != null ||
                 this.VpnClientRevokedCertificates != null ||
-                this.RadiusServerAddress != null)
+                this.RadiusServerAddress != null ||
+                (this.VpnClientIpsecPolicies != null && this.VpnClientIpsecPolicies.Count != 0))
             {
                 vnetGateway.VpnClientConfiguration = new PSVpnClientConfiguration();
 
@@ -350,6 +357,11 @@ namespace Microsoft.Azure.Commands.Network
                 if (this.VpnClientRevokedCertificates != null)
                 {
                     vnetGateway.VpnClientConfiguration.VpnClientRevokedCertificates = this.VpnClientRevokedCertificates;
+                }
+
+                if (this.VpnClientIpsecPolicies != null && this.VpnClientIpsecPolicies.Count !=0 )
+                {
+                    vnetGateway.VpnClientConfiguration.VpnClientIpsecPolicies = this.VpnClientIpsecPolicies;
                 }
 
                 if ((this.RadiusServerAddress != null && this.RadiusServerSecret == null) ||
